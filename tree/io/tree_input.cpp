@@ -180,7 +180,11 @@ Node *GetNodeN (const char **expr)
     Node *result = create_num (value);
     result->value.dbl_val = value;
 
-    assert (*expr != exprOld);
+    if (!(*expr != exprOld))
+    {
+        debug_print ("Error: syntax error (expr is {%s} now)", *expr);
+        return nullptr;
+    }
 
     return result;
 }
@@ -190,8 +194,7 @@ Node *GetNodeV (const char **expr)
     skip_spaces (expr);
 
     Node *result = nullptr;
-
-    const char *exprOld = *expr;
+    Node *left_node = nullptr;
 
     char var[4] = "";
 
@@ -201,18 +204,33 @@ Node *GetNodeV (const char **expr)
     {
         *(var + var_len) = **expr;
 
+        var_len++;
         (*expr)++;
-
-        if (var_len++ > 3)//and var != log ln cos sin tg arctg arcsin arccos arcctg ctg e pi
-        {
-            printf ("Error: max var len is 2");
-            return nullptr;
-        }
     }
 
-    if (var_len)
+    if (var_len)//and var != log ln cos sin tg arctg arcsin arccos arcctg ctg e pi
     {
-        result = tree_create_node (TYPE_VAR, var);
+        if (var_len > 3)
+        {
+            printf ("Error: max var len is 3");
+            return nullptr;
+        }
+        else if (strcasecmp (var, "sin") == 0)
+        {
+            left_node = GetNodeP (expr);
+
+            result = tree_create_node (TYPE_OP, "OP_SIN", left_node);
+        }
+        else if (strcasecmp (var, "cos") == 0)
+        {
+            left_node = GetNodeP (expr);
+
+            result = tree_create_node (TYPE_OP, "OP_COS", left_node);
+        }
+        else
+        {
+            result = tree_create_node (TYPE_VAR, var);
+        }
     }
 
     return result;
