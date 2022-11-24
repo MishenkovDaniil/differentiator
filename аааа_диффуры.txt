@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage[english, russian]{babel}
+\usepackage{euscript}
+\usepackage{mathrsfs}
+\usepackage{amssymb}
+\renewcommand{\familydefault}{\rmdefault}
+\title{Идеи решения задач тысячелетия путем дифференцированного исчисления}
+\author{Мишенков Даниил Николаевич,\\
+		доцент кафедры высшей философии МГУ}
+\date{ноябрь 2022}
+\begin{document}
+\maketitle
+$( 4.00 )' =  0.00 $\newline
+$( x )' =  1.00 $\newline
+$(( x )-( 4.00 ))' = ( 1.00 )-( 0.00 )$\newline
+$( 2.00 )' =  0.00 $\newline
+$( x )' =  1.00 $\newline
+$(( x )+( 2.00 ))' = ( 1.00 )+( 0.00 )$\newline
+$(\frac{( x )+( 2.00 )}{( x )-( 4.00 )})' = \frac{((( 1.00 )+( 0.00 ))\times (( x )-( 4.00 )))-((( x )+( 2.00 ))\times (( 1.00 )-( 0.00 )))}{(( x )-( 4.00 ))\times (( x )-( 4.00 ))}$\newline
+\end {document}

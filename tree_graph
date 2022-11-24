@@ -1,0 +1,48 @@
+digraph
+{
+	node_7 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009486B0 | {OP | /} | {L 00948728 | R 00944430}} "];
+	node_8 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00948728 | {OP | -} | {L 009487A0 | R 00945500}} "];
+	node_9 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009487A0 | {OP | *} | {L 00948660 | R 00945528}} "];
+	node_10 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00948660 | {OP | +} | {L 009404B0 | R 00945550}} "];
+	node_11 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009404B0 | {NUM | 1.00} | {L 00000000 | R 00000000}} "];
+	node_12 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00945550 | {NUM | 0.00} | {L 00000000 | R 00000000}} "];
+	node_10->node_11;
+	node_10->node_12;
+	node_13 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00945528 | {OP | -} | {L 009442F0 | R 00944328}} "];
+	node_14 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009442F0 | {VAR | x} | {L 00000000 | R 00000000}} "];
+	node_15 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00944328 | {NUM | 4.00} | {L 00000000 | R 00000000}} "];
+	node_13->node_14;
+	node_13->node_15;
+	node_9->node_10;
+	node_9->node_13;
+	node_16 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00945500 | {OP | *} | {L 009454D8 | R 009454B0}} "];
+	node_17 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009454D8 | {OP | +} | {L 00943270 | R 009442A0}} "];
+	node_18 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00943270 | {VAR | x} | {L 00000000 | R 00000000}} "];
+	node_19 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009442A0 | {NUM | 2.00} | {L 00000000 | R 00000000}} "];
+	node_17->node_18;
+	node_17->node_19;
+	node_20 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009454B0 | {OP | -} | {L 00945488 | R 00944458}} "];
+	node_21 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00945488 | {NUM | 1.00} | {L 00000000 | R 00000000}} "];
+	node_22 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00944458 | {NUM | 0.00} | {L 00000000 | R 00000000}} "];
+	node_20->node_21;
+	node_20->node_22;
+	node_16->node_17;
+	node_16->node_20;
+	node_8->node_9;
+	node_8->node_16;
+	node_23 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00944430 | {OP | *} | {L 00944408 | R 009443E0}} "];
+	node_24 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00944408 | {OP | -} | {L 009442F0 | R 00944328}} "];
+	node_25 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009442F0 | {VAR | x} | {L 00000000 | R 00000000}} "];
+	node_26 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00944328 | {NUM | 4.00} | {L 00000000 | R 00000000}} "];
+	node_24->node_25;
+	node_24->node_26;
+	node_27 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009443E0 | {OP | -} | {L 009442F0 | R 00944328}} "];
+	node_28 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 009442F0 | {VAR | x} | {L 00000000 | R 00000000}} "];
+	node_29 [shape = record, style = "filled", fillcolor = "lightblue", label = "{node 00944328 | {NUM | 4.00} | {L 00000000 | R 00000000}} "];
+	node_27->node_28;
+	node_27->node_29;
+	node_23->node_24;
+	node_23->node_27;
+	node_7->node_8;
+	node_7->node_23;
+	}
