@@ -312,12 +312,16 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
         }
     }
 
-    if (node->left != nullptr && node->right != nullptr)
+    if (node->left != nullptr)
     {
         int left = make_graph_nodes (node->left, tgraph_file);
-        int right = make_graph_nodes (node->right, tgraph_file);
 
         fprintf (tgraph_file, "node_%d->node_%d;\n\t", node_num, left);
+    }
+    if (node->right != nullptr)
+    {
+        int right = make_graph_nodes (node->right, tgraph_file);
+
         fprintf (tgraph_file, "node_%d->node_%d;\n\t", node_num, right);
     }
 
