@@ -10,6 +10,7 @@ Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name);
 Node *GetNodeG (Tree *tree, const char *expr);
 Node *GetNodeE (const char **expr);
 Node *GetNodeT (const char **expr);
+Node *GetNodeD (const char **expr);
 Node *GetNodeP (const char **expr);
 Node *GetNodeN (const char **expr);
 Node *GetNodeV (const char **expr);

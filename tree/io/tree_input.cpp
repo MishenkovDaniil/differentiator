@@ -15,6 +15,9 @@
 #define SUB(left_node, right_node)      tree_create_node (TYPE_OP, "OP_SUB", left_node, right_node)
 #define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
 #define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
+#define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
+#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node)
+#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node)
 
 #define debug_print(...)                                                        \
 do                                                                              \
@@ -71,8 +74,7 @@ Node *GetNodeE (const char **expr)
 {
     skip_spaces (expr);
 
-    Node *result = nullptr;
-    Node *left_node = GetNodeT (expr);
+    Node *result = GetNodeT (expr);
     Node *right_node = nullptr;
 
     skip_spaces (expr);
@@ -88,23 +90,22 @@ Node *GetNodeE (const char **expr)
 
         if (op == '+')
         {
-            left_node = ADD (left_node, right_node);
+            result = ADD (result, right_node);
         }
         else
         {
-            left_node = SUB (left_node, right_node);
+            result = SUB (result, right_node);
         }
     }
 
-    return left_node;
+    return result;
 }
 
 Node *GetNodeT (const char **expr)
 {
     skip_spaces (expr);
 
-    Node *result = nullptr;
-    Node *left_node = GetNodeP (expr);
+    Node *result = GetNodeD (expr);
     Node *right_node = nullptr;
 
     skip_spaces (expr);
@@ -115,21 +116,44 @@ Node *GetNodeT (const char **expr)
 
         (*expr)++;
 
-        right_node = GetNodeP (expr);
+        right_node = GetNodeD (expr);
 
         skip_spaces (expr);
 
         if (op == '*')
         {
-            left_node = MUL (left_node, right_node);
+            result = MUL (result, right_node);
         }
         else
         {
-            left_node = DIV (left_node, right_node);
+            result = DIV (result, right_node);
         }
     }
 
-    return left_node;
+    return result;
+}
+
+Node *GetNodeD (const char **expr)
+{
+    skip_spaces (expr);
+
+    Node *result = GetNodeP (expr);
+    Node *right_node = nullptr;
+
+    skip_spaces (expr);
+
+    while (**expr == '^')
+    {
+        (*expr)++;
+
+        right_node = GetNodeP (expr);
+
+        skip_spaces (expr);
+
+        result = DEG (result, right_node);
+    }
+
+    return result;
 }
 
 Node *GetNodeP (const char **expr)
@@ -169,7 +193,14 @@ Node *GetNodeN (const char **expr)
     int value = 0;
 
     const char *exprOld = *expr;
-
+    int sign = 1;
+    if (**expr == '+' || **expr == '-')
+    {
+        if (*(*expr++) == '-')
+        {
+            sign = -1;
+        }
+    }
     while ('0' <= **expr && **expr <= '9')
     {
         value = value*10 + **expr - '0';
@@ -219,13 +250,13 @@ Node *GetNodeV (const char **expr)
         {
             left_node = GetNodeP (expr);
 
-            result = tree_create_node (TYPE_OP, "OP_SIN", left_node);
+            result = SIN (left_node);
         }
         else if (strcasecmp (var, "cos") == 0)
         {
             left_node = GetNodeP (expr);
 
-            result = tree_create_node (TYPE_OP, "OP_COS", left_node);
+            result = COS (left_node);
         }
         else
         {
