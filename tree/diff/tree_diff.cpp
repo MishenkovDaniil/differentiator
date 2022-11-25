@@ -115,7 +115,7 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
                 }
                 case OP_COS:
                 {
-                    result = MUL (SIN (cL), dL); ///!!!!!!!!!!!! -SIN
+                    result = MUL (MUL(SIN (cL), create_num(-1)), dL);
                     tree_tex_print (node, result, tex_file);
                     return result;
 
