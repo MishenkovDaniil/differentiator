@@ -16,8 +16,9 @@ enum Op_val
     OP_SUB = 2,
     OP_MUL = 3,
     OP_DIV = 4,
-    OP_SIN = 5,
-    OP_COS = 6,
+    OP_DEG = 5,
+    OP_SIN = 6,
+    OP_COS = 7,
 };
 
 union Value
@@ -46,6 +47,8 @@ struct Tree
 static unsigned int DEF_ERRNO = 0;
 
 Node *tree_create_node (Type type, const char *value, Node *left = nullptr, Node *right = nullptr);
+
+void swap_nodes (Node *first_node, Node *second_node);
 
 void tree_ctor (Tree *tree, unsigned int *err = &DEF_ERRNO);
 void add_nodes (Tree *tree, Node *parent_node, Type left_type, Type right_type,

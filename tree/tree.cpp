@@ -42,6 +42,10 @@ Node *tree_create_node (Type type, const char *value, Node *left, Node *right)
             {
                 node->value.op_val = OP_DIV;
             }
+            else if (strcasecmp ("OP_DEG", value) == 0)
+            {
+                node->value.op_val = OP_DEG;
+            }
             else if (strcasecmp ("OP_SIN", value) == 0)
             {
                 node->value.op_val = OP_SIN;
@@ -99,6 +103,14 @@ void tree_ctor (Tree *tree, unsigned int *err)
     }
     tree->root = tree_create_node (TYPE_OP, "OP_MUL");
     assert (tree->root);
+}
+
+void swap_nodes (Node *first_node, Node *second_node)
+{
+    Node *temp_node = first_node;
+
+    first_node = second_node;
+    second_node = temp_node;
 }
 
 void add_nodes (Tree *tree, Node *parent_node, Type left_type, Type right_type, char *left_value, char *right_value, unsigned int *err)
@@ -274,6 +286,11 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
                     case OP_DIV:
                     {
                         fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '/', node->left, node->right);
+                        break;
+                    }
+                    case OP_DEG:
+                    {
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '^', node->left, node->right);
                         break;
                     }
                     case OP_SIN:
