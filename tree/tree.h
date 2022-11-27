@@ -48,7 +48,7 @@ static unsigned int DEF_ERRNO = 0;
 
 Node *tree_create_node (Type type, const char *value, Node *left = nullptr, Node *right = nullptr);
 
-void swap_nodes (Node *first_node, Node *second_node);
+void swap_nodes (Node **first_node, Node **second_node);
 
 void tree_ctor (Tree *tree, unsigned int *err = &DEF_ERRNO);
 void add_nodes (Tree *tree, Node *parent_node, Type left_type, Type right_type,

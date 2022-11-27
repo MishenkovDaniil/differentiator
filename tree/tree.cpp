@@ -89,6 +89,15 @@ Node *tree_create_node (Type type, const char *value, Node *left, Node *right)
     node->left = left;
     node->right = right;
 
+    if (node->left)
+    {
+        node->left->parent = node;
+    }
+    if (node->right)
+    {
+        node->right->parent = node;
+    }
+
     return node;
 }
 
@@ -105,12 +114,12 @@ void tree_ctor (Tree *tree, unsigned int *err)
     assert (tree->root);
 }
 
-void swap_nodes (Node *first_node, Node *second_node)
+void swap_nodes (Node **first_node, Node **second_node)
 {
-    Node *temp_node = first_node;
+    Node *temp_node = *first_node;
 
-    first_node = second_node;
-    second_node = temp_node;
+    *first_node = *second_node;
+    *second_node = temp_node;
 }
 
 void add_nodes (Tree *tree, Node *parent_node, Type left_type, Type right_type, char *left_value, char *right_value, unsigned int *err)
@@ -248,7 +257,7 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
 
     if (node == nullptr)
     {
-        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"NULL\"];\n\t", graph_num++);
+        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{parent = %p} | NULL\"];\n\t", graph_num++);
     }
     else
     {
@@ -256,7 +265,7 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
         {
             case TYPE_DEFAULT:
             {
-                fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"DEFAULT\"];\n\t", graph_num++);
+                fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{parent = %p} | {DEFAULT}\"];\n\t", graph_num++, node->parent);
                 break;
             }
             case TYPE_OP:
@@ -265,42 +274,42 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
                 {
                     case OP_DEFAULT:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{node %p | {OP | DEFAULT} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{node %p | {parent = %p} | {OP | DEFAULT} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, node->left, node->right);
                         break;
                     }
                     case OP_ADD:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '+', node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '+', node->left, node->right);
                         break;
                     }
                     case OP_SUB:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '-', node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '-', node->left, node->right);
                         break;
                     }
                     case OP_MUL:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '*', node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '*', node->left, node->right);
                         break;
                     }
                     case OP_DIV:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '/', node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '/', node->left, node->right);
                         break;
                     }
                     case OP_DEG:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, '^', node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '^', node->left, node->right);
                         break;
                     }
                     case OP_SIN:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, "sin", node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, "sin", node->left, node->right);
                         break;
                     }
                     case OP_COS:
                     {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {OP | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, "cos", node->left, node->right);
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, "cos", node->left, node->right);
                         break;
                     }
                     default:
