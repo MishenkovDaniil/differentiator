@@ -2,10 +2,19 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <math.h>
 
 #include "../tree.h"
 #include "tree_diff.h"
 #include "../io/tree_output.h"
+
+#define debug_print(...)                                                        \
+do                                                                              \
+{                                                                               \
+    printf (__VA_ARGS__);                                                       \
+    fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
+}while (0)
 
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
@@ -18,13 +27,18 @@
 #define SUB(left_node, right_node)      tree_create_node (TYPE_OP, "OP_SUB", left_node, right_node)
 #define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
 #define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
-#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node, nullptr)
-#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node, nullptr)
+#define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
+#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node)
+#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node)
 
+static const char *phrases[5] = {"ОЧЕВИДНО, ЧТО", "В СССР СЛЕДУЮЩИЙ РЕЗУЛЬТАТ БЫЛО СТЫДНО ЗАПИСЫВАТЬ",
+                               "БУДЕМ СЧИТАТЬ ВЕРНЫМ, ЧТО", "ТОГДА ТАК", "А ТУТ ТАК"};
 Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
 {
     assert (node);
     assert (err);
+
+    srand (time(NULL));
 
     Node *result = nullptr;
 
@@ -52,17 +66,11 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
         case TYPE_NUM:
         {
             result = create_num (0);
-            tree_tex_print (node, result, tex_file);
-            return result;
-
             break;
         }
         case TYPE_VAR:
         {
             result = create_num (1);
-            tree_tex_print (node, result, tex_file);
-            return result;
-
             break;
         }
         case TYPE_OP:
@@ -76,60 +84,46 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
                 case OP_ADD:
                 {
                     result =  ADD (dL, dR);
-                    tree_tex_print (node, result, tex_file);
-                    return result;
-
                     break;
                 }
                 case OP_SUB:
                 {
                     result = SUB (dL, dR);
-                    tree_tex_print (node, result, tex_file);
-                    return result;
-
                     break;
                 }
                 case OP_MUL:
                 {
                     result = ADD (MUL (dL, cR), MUL (cL, dR));
-                    tree_tex_print (node, result, tex_file);
-                    return result;
-
                     break;
                 }
                 case OP_DIV:
                 {
                     result = DIV (SUB (MUL (dL, cR), MUL (cL, dR)), MUL (cR, cR));
-                    tree_tex_print (node, result, tex_file);
-                    return result;
-
+                    break;
+                }
+                case OP_DEG:
+                {
+                    result = MUL (MUL (DEG(cL, SUB (cR, create_num (1))), dL), cR);
                     break;
                 }
                 case OP_SIN:
                 {
                     result = MUL (COS (cL), dL);
-                    tree_tex_print (node, result, tex_file);
-                    return result;
-
                     break;
                 }
                 case OP_COS:
                 {
                     result = MUL (MUL(SIN (cL), create_num(-1)), dL);
-                    tree_tex_print (node, result, tex_file);
-                    return result;
-
                     break;
                 }
-
                 default:
                 {
                     printf ("Error: unknown operation node: %p, operation: %d, file: %s, function: %s.\n",
                             node, node->value.op_val, __FILE__, __PRETTY_FUNCTION__);
-
                     return nullptr;
                 }
             }
+            break;
         }
         default:
         {
@@ -138,18 +132,50 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
     }
 
 
+    fprintf (tex_file, "%s\\newline\n", phrases[rand() % 5]);
+    tree_tex_print (node, result, tex_file);
+
+    return result;
 }
 
 Node *cpy_node (const Node *node)
 {
     Node *copy = tree_create_node (TYPE_DEFAULT, nullptr);
-
-    memcpy (copy, node, sizeof (Node));
+    //Node *copy = (Node *)calloc (1, sizeof (Node));
+    //memcpy (copy, node, sizeof (Node));
+    copy->type = node->type;
+    switch (copy->type)
+    {
+        case TYPE_DEFAULT:
+            break;
+        case TYPE_OP:
+        {
+            copy->value.op_val = node->value.op_val;
+            break;
+        }
+        case TYPE_NUM:
+        {
+            copy->value.dbl_val = node->value.dbl_val;
+            break;
+        }
+        case TYPE_VAR:
+        {
+            copy->value.var = node->value.var;
+            break;
+        }
+        default:
+        {
+            return nullptr;
+        }
+    }
 
     if (copy == nullptr)
     {
         printf ("copy failed\n");
     }
+
+    if (node->left) copy->left = cpy_node (node->left);
+    if (node->right) copy->right = cpy_node (node->right);
 
     return copy;
 }
@@ -165,3 +191,6 @@ Node *cpy_node (const Node *node)
 #undef SUB
 #undef MUL
 #undef DIV
+#undef DEG
+#undef SIN
+#undef COS
