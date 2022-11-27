@@ -31,8 +31,28 @@ do                                                                              
 #define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node)
 #define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node)
 
-static const char *phrases[5] = {"ОЧЕВИДНО, ЧТО", "В СССР СЛЕДУЮЩИЙ РЕЗУЛЬТАТ БЫЛО СТЫДНО ЗАПИСЫВАТЬ",
-                               "БУДЕМ СЧИТАТЬ ВЕРНЫМ, ЧТО", "ТОГДА ТАК", "А ТУТ ТАК"};
+static const char *phrases[5] = {"Очевидно, что", "В СССР следующий рещультат было стыдно записывать",
+                               "Будем считать верным, что", "Тогда так", "А тут так"};
+
+Node *find_diff (Node *node, FILE *tex_file, int diff_order, unsigned int *err)
+{
+    Node *diff_tree_root = node;
+
+    while (diff_order > 0)
+    {
+        Node *temp_node = diff_tree_root;
+        diff_tree_root = tree_diff (temp_node, tex_file, err);
+        diff_order--;
+
+        if (temp_node != node)
+        {
+            tree_free (temp_node);
+        }
+    }
+
+    return diff_tree_root;
+}
+
 Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
 {
     assert (node);
@@ -133,7 +153,7 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
 
 
     fprintf (tex_file, "%s\\newline\n", phrases[rand() % 5]);
-    tree_tex_print (node, result, tex_file);
+    tree_tex_print (node, result, tex_file, true);
 
     return result;
 }
@@ -160,7 +180,8 @@ Node *cpy_node (const Node *node)
         }
         case TYPE_VAR:
         {
-            copy->value.var = node->value.var;
+            copy->value.var = (char *)calloc (strlen (node->value.var) + 1, sizeof (char));
+            strcpy (copy->value.var, node->value.var);
             break;
         }
         default:
