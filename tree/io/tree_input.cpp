@@ -7,8 +7,6 @@
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
 #define Right                           node->right
-#define dL                              tree_diff (Left, tex_file)
-#define dR                              tree_diff (Right, tex_file)
 #define cL                              cpy_node (Left)
 #define cR                              cpy_node (Right)
 #define ADD(left_node, right_node)      tree_create_node (TYPE_OP, "OP_ADD", left_node, right_node)
@@ -63,7 +61,7 @@ Node *GetNodeG (Tree *tree, const char *expr)
 
     if (!(*expr == '\0'))
     {
-        debug_print ("Error: last symbol to read is not '\0' (expr is {%s} now)", *expr);
+        debug_print ("Error: last symbol to read is not '\\0' (expr is {%s} now)", expr);
         return nullptr;
     }
 
@@ -190,10 +188,14 @@ Node *GetNodeN (const char **expr)
 {
     skip_spaces (expr);
 
-    int value = 0;
+    double value = 0;
 
-    const char *exprOld = *expr;
-    int sign = 1;
+    const char *old_expr = *expr;
+    char *new_expr = nullptr;
+    value = strtod (*expr, &new_expr);
+    *expr = new_expr;
+    /*int sign = 1;
+
     if (**expr == '+' || **expr == '-')
     {
         if (*(*expr++) == '-')
@@ -206,12 +208,12 @@ Node *GetNodeN (const char **expr)
         value = value*10 + **expr - '0';
         printf ("%d", value);
         (*expr)++;
-    }
+    }*/
 
     Node *result = create_num (value);
     result->value.dbl_val = value;
 
-    if (!(*expr != exprOld))
+    if (!(*expr != old_expr))
     {
         debug_print ("Error: syntax error (expr is {%s} now)", *expr);
         return nullptr;
@@ -266,3 +268,18 @@ Node *GetNodeV (const char **expr)
 
     return result;
 }
+
+#undef create_num
+#undef Left
+#undef Right
+#undef dL
+#undef dR
+#undef cL
+#undef cR
+#undef ADD
+#undef SUB
+#undef MUL
+#undef DIV
+#undef DEG
+#undef SIN
+#undef COS
