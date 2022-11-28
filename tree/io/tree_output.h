@@ -3,7 +3,7 @@
 
 #include "../tree.h"
 
-void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file);
+void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff = false, int diff_order = 1);
 void print_tex_header (FILE *tex_file);
 void tex_print_node (const Node *node, FILE *tex_file);
 void print_tex_ending (FILE *tex_file);

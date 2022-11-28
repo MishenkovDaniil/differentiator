@@ -8,36 +8,50 @@
 #include "../tree.h"
 #include "tree_output.h"
 
-void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file)
+#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+
+void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff, int diff_order)
 {
     assert (tex_file);
 
-    static int is_adding_text = 0;
+    tex_print ("$");
 
-    if (is_adding_text == 0)
+    if (is_diff)
     {
-        print_tex_header (tex_file);
-        is_adding_text = 1;
+        tex_print ("(");
     }
 
-    fprintf (tex_file, "$(");
+    if (left_part)
+    {
+        tex_print_node (left_part, tex_file);
+    }
 
-    tex_print_node (left_part, tex_file);
-    fprintf (tex_file, ")'");
-    fprintf (tex_file, " = ");
+    if (is_diff)
+    {
+        if (diff_order == 1)
+        {
+            tex_print (")'");
+        }
+        else
+        {
+            tex_print (")^{(%d)}", diff_order);
+        }
+    }
+
+    if (left_part)
+    {
+        tex_print (" = ");
+    }
 
     tex_print_node (right_part, tex_file);
 
-    fprintf (tex_file, "$\\newline\n");
+    tex_print ("$\\newline\n");
 }
 
 void tex_print_node (const Node *node, FILE *tex_file)
 {
     assert (tex_file);
-    /*if (node->left)
-    {
-        tex_print_node (node->left, tex_file);
-    }*/
+
     if (node == nullptr)
     {
         return;
@@ -50,12 +64,22 @@ void tex_print_node (const Node *node, FILE *tex_file)
         }
         case TYPE_NUM:
         {
-            fprintf (tex_file, " %.2lf ", node->value.dbl_val);
+            double val = node->value.dbl_val;
+
+            if (val - (int)val == 0)
+            {
+                tex_print (" %.0lf ", val);
+            }
+            else
+            {
+                tex_print (" %.2lf ", val);
+            }
+
             break;
         }
         case TYPE_VAR:
         {
-            fprintf (tex_file, " %s ", node->value.var);
+            tex_print (" %s ", node->value.var);
             break;
         }
         case TYPE_OP:
@@ -66,80 +90,84 @@ void tex_print_node (const Node *node, FILE *tex_file)
                     break;
                 case OP_ADD:
                 {
-                    fprintf (tex_file, "(");
-                    if (node->left)
-                    {
-                        tex_print_node (node->left, tex_file);
-                    }
-                    fprintf (tex_file, ")");
+                    tex_print_node (node->left, tex_file);
 
-                    fprintf (tex_file, "+");
+                    tex_print ("+");
 
-                    fprintf (tex_file, "(");
-                    if (node->right)
-                    {
-                        tex_print_node (node->right, tex_file);
-                    }
-                    fprintf (tex_file, ")");
+                    tex_print_node (node->right, tex_file);
+
                     break;
                 }
                 case OP_SUB:
                 {
-                    fprintf (tex_file, "(");
-                    if (node->left)
-                    {
-                        tex_print_node (node->left, tex_file);
-                    }
-                    fprintf (tex_file, ")");
+                    tex_print_node (node->left, tex_file);
 
-                    fprintf (tex_file, "-");
+                    tex_print ("-");
 
-                    fprintf (tex_file, "(");
-                    if (node->right)
-                    {
-                        tex_print_node (node->right, tex_file);
-                    }
-                    fprintf (tex_file, ")");
+                    tex_print_node (node->right, tex_file);
+
                     break;
                 }
                 case OP_MUL:
                 {
-                    fprintf (tex_file, "(");
-                    if (node->left)
-                    {
-                        tex_print_node (node->left, tex_file);
-                    }
-                    fprintf (tex_file, ")");
+                    tex_print ("(");
 
-                    fprintf (tex_file, "\\times ");
+                    tex_print_node (node->left, tex_file);
 
-                    fprintf (tex_file, "(");
+                    tex_print (")\\times (");
 
-                    if (node->right)
-                    {
-                        tex_print_node (node->right, tex_file);
-                    }
-                    fprintf (tex_file, ")");
+                    tex_print_node (node->right, tex_file);
+
+                    tex_print (")");
 
                     break;
                 }
                 case OP_DIV:
                 {
-                    fprintf (tex_file, "\\frac");
+                    tex_print ("\\frac{");
 
-                    fprintf (tex_file, "{");
-                    if (node->left)
-                    {
-                        tex_print_node (node->left, tex_file);
-                    }
-                    fprintf (tex_file, "}");
+                    tex_print_node (node->left, tex_file);
 
-                    fprintf (tex_file, "{");
-                    if (node->right)
-                    {
-                        tex_print_node (node->right, tex_file);
-                    }
-                    fprintf (tex_file, "}");
+                    tex_print ("}{");
+
+                    tex_print_node (node->right, tex_file);
+
+                    tex_print ("}");
+
+                    break;
+                }
+                case OP_DEG:
+                {
+                    tex_print ("(");
+
+                    tex_print_node (node->left, tex_file);
+
+                    tex_print (")^{");
+
+                    tex_print_node (node->right, tex_file);
+
+                    tex_print ("}");
+
+                    break;
+                }
+                case OP_SIN:
+                {
+                    tex_print ("\\sin(");
+
+                    tex_print_node (node->left, tex_file);
+
+                    tex_print (")");
+
+                    break;
+                }
+                case OP_COS:
+                {
+                    tex_print ("\\cos(");
+
+                    tex_print_node (node->left, tex_file);
+
+                    tex_print (")");
+
                     break;
                 }
                 default:
@@ -156,11 +184,8 @@ void tex_print_node (const Node *node, FILE *tex_file)
             break;
         }
     }
-    /*if (node->right)
-    {
-        tex_print_node (node->left, tex_file);
-    }*/
 }
+#undef tex_print
 
 void print_tex_header (FILE *tex_file)
 {
@@ -172,10 +197,10 @@ void print_tex_header (FILE *tex_file)
                         "\\usepackage{mathrsfs}\n"
                         "\\usepackage{amssymb}\n"
                         "\\renewcommand{\\familydefault}{\\rmdefault}\n"
-                        "\\title{Идеи решения задач тысячелетия путем дифференцированного исчисления}\n"
-                        "\\author{Мишенков Даниил Николаевич,\\\\\n"
-                        "\t\tдоцент кафедры высшей философии МГУ}\n"
-                        "\\date{ноябрь 2022}\n"
+                        "\\title{РРґРµРё СЂРµС€РµРЅРёСЏ Р·Р°РґР°С‡ С‚С‹СЃСЏС‡РµР»РµС‚РёСЏ РїСѓС‚РµРј РґРёС„С„РµСЂРµРЅС†РёСЂРѕРІР°РЅРЅРѕРіРѕ РёСЃС‡РёСЃР»РµРЅРёСЏ}\n"
+                        "\\author{РњРёС€РµРЅРєРѕРІ Р”Р°РЅРёРёР» РќРёРєРѕР»Р°РµРІРёС‡,\\\\\n"
+                        "\t\tРґРѕС†РµРЅС‚ РєР°С„РµРґСЂС‹ РІС‹СЃС€РµР№ С„РёР»РѕСЃРѕС„РёРё РњР“РЈ}\n"
+                        "\\date{РЅРѕСЏР±СЂСЊ 2022}\n"
                         "\\begin{document}\n"
                         "\\maketitle\n");
 }
