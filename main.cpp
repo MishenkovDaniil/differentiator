@@ -57,7 +57,7 @@ int main ()
     tree_convolution (def_tree.root);
     tree_check (&def_tree, err);
     printf ("[%d]\n", __LINE__);
-    tree_tex_print (func_name, def_tree.root, tex_file, true);
+    tree_tex_print (func_name, def_tree.root, tex_file, true, diff_order);
 
     print_tex_ending (tex_file);
 
