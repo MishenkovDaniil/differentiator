@@ -11,20 +11,8 @@ do                                                                              
     fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
 }while (0)
 
-#define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
 #define Right                           node->right
-#define dL                              tree_diff (Left, tex_file)
-#define dR                              tree_diff (Right, tex_file)
-#define cL                              cpy_node (Left)
-#define cR                              cpy_node (Right)
-#define ADD(left_node, right_node)      tree_create_node (TYPE_OP, "OP_ADD", left_node, right_node)
-#define SUB(left_node, right_node)      tree_create_node (TYPE_OP, "OP_SUB", left_node, right_node)
-#define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
-#define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
-#define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
-#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node)
-#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node)
 
 Node *tree_convolution (Node *node)
 {
@@ -187,7 +175,7 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
     }
     else if (val == 1)
     {
-        if (node->value.op_val == OP_MUL || node->value.op_val == OP_DIV || node->value.op_val == OP_DEG)
+        if ((node->value.op_val == OP_MUL || node->value.op_val == OP_DIV || node->value.op_val == OP_DEG) && node->parent != nullptr)
         {
             if (not_num_node_child)
             {
@@ -247,17 +235,6 @@ int is_op (Node *node)
     return node->type == TYPE_OP;
 }
 
-#undef create_num
 #undef Left
 #undef Right
-#undef dL
-#undef dR
-#undef cL
-#undef cR
-#undef ADD
-#undef SUB
-#undef MUL
-#undef DIV
-#undef DEG
-#undef SIN
-#undef COS
+#undef debug_print
