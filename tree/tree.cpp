@@ -114,14 +114,6 @@ void tree_ctor (Tree *tree, unsigned int *err)
     assert (tree->root);
 }
 
-void swap_nodes (Node **first_node, Node **second_node)
-{
-    Node *temp_node = *first_node;
-
-    *first_node = *second_node;
-    *second_node = temp_node;
-}
-
 void add_nodes (Tree *tree, Node *parent_node, Type left_type, Type right_type, char *left_value, char *right_value, unsigned int *err)
 {
     assert (tree);
@@ -189,6 +181,11 @@ void tree_free (Node *node)
             free (node->value.var);
         }
     }
+
+    node->left = nullptr;
+    node->right = nullptr;
+    node->parent = nullptr;
+
     free (node);
 
     node = nullptr;
