@@ -8,6 +8,7 @@
 #include "../tree.h"
 #include "tree_diff.h"
 #include "../io/tree_output.h"
+#include "../tree_convolution.h"
 
 #define debug_print(...)                                                        \
 do                                                                              \
@@ -19,8 +20,8 @@ do                                                                              
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
 #define Right                           node->right
-#define dL                              tree_diff (Left, tex_file)
-#define dR                              tree_diff (Right, tex_file)
+#define dL                              tree_diff (Left, tex_file, is_to_print)
+#define dR                              tree_diff (Right, tex_file, is_to_print)
 #define cL                              cpy_node (Left)
 #define cR                              cpy_node (Right)
 #define ADD(left_node, right_node)      tree_create_node (TYPE_OP, "OP_ADD", left_node, right_node)
@@ -41,8 +42,13 @@ Node *find_diff (Node *node, FILE *tex_file, int diff_order, unsigned int *err)
     while (diff_order > 0)
     {
         Node *temp_node = diff_tree_root;
-        diff_tree_root = tree_diff (temp_node, tex_file, err);
-        diff_order--;
+
+        diff_tree_root = tree_diff (temp_node, tex_file, true, err);
+
+        if (--diff_order)
+        {
+            tree_convolution (diff_tree_root);
+        }
 
         if (temp_node != node)
         {
@@ -53,7 +59,7 @@ Node *find_diff (Node *node, FILE *tex_file, int diff_order, unsigned int *err)
     return diff_tree_root;
 }
 
-Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
+Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned int *err)
 {
     assert (node);
     assert (err);
@@ -123,7 +129,7 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
                 }
                 case OP_DEG:
                 {
-                    result = MUL (MUL (DEG(cL, SUB (cR, create_num (1))), dL), cR);
+                    result = MUL (MUL (DEG(cL, SUB (cR, create_num (1))), dL ), cR);
                     break;
                 }
                 case OP_SIN:
@@ -151,9 +157,11 @@ Node *tree_diff (const Node *node, FILE *tex_file, unsigned int *err)
         }
     }
 
-
-    fprintf (tex_file, "%s\\newline\n", phrases[rand() % 5]);
-    tree_tex_print (node, result, tex_file, true);
+    if (is_to_print)
+    {
+        fprintf (tex_file, "%s\\newline\n", phrases[rand() % 5]);
+        tree_tex_print (node, result, tex_file, true);
+    }
 
     return result;
 }
