@@ -7,6 +7,7 @@
 #include "tree/io/tree_output.h"
 #include "tree/diff/tree_diff.h"
 #include "tree/tree_convolution.h"
+#include "tree/func_value.h"
 
 int main ()
 {
@@ -37,6 +38,11 @@ int main ()
     tree_check (&tree, err);
     tree_tex_print (func_name, tree.root, tex_file);
 
+    printf ("Enter point a to find f(a):");
+    double point = 0;
+    scanf ("%lf", &point);
+
+    printf ("\nVALUE IN POINT %lf IS %lf\n", point, func_point_value (&tree, point));
     printf ("Enter diff order to find: ");
     int diff_order = 0;
     scanf ("%d", &diff_order);
