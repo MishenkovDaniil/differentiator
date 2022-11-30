@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include "tree.h"
+#include "../tree.h"
 #include "func_value.h"
 
 #define debug_print(...)                                                        \
