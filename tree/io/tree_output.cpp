@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "../tree.h"
 #include "tree_output.h"
@@ -14,38 +15,32 @@ void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_fi
 {
     assert (tex_file);
 
-    tex_print ("$");
+    tex_print ("\\[");
 
-    if (is_diff)
+    if (is_diff && left_part)
     {
         tex_print ("(");
-    }
 
-    if (left_part)
-    {
         tex_print_node (left_part, tex_file);
-    }
 
-    if (is_diff)
-    {
         if (diff_order == 1)
         {
-            tex_print (")'");
+            tex_print (")' = ");
         }
         else
         {
-            tex_print (")^{(%d)}", diff_order);
+            tex_print (")^{(%d)} = ", diff_order);
         }
     }
-
-    if (left_part)
+    else if (left_part)
     {
+        tex_print_node (left_part, tex_file);
         tex_print (" = ");
     }
 
     tex_print_node (right_part, tex_file);
 
-    tex_print ("$\\newline\n");
+    tex_print ("\\]\\newline\n");
 }
 
 void tex_print_node (const Node *node, FILE *tex_file)
@@ -104,21 +99,58 @@ void tex_print_node (const Node *node, FILE *tex_file)
 
                     tex_print ("-");
 
-                    tex_print_node (node->right, tex_file);
+                    if (node->right->type == TYPE_OP)
+                    {
+                        tex_print ("(");
+                        tex_print_node (node->right, tex_file);
+                        tex_print (")");
+                    }
+                    else
+                    {
+                        tex_print_node (node->right, tex_file);
+                    }
 
                     break;
                 }
                 case OP_MUL:
                 {
-                    tex_print ("(");
+                    if (node->left->type == TYPE_OP)
+                    {
+                        if (node->left->value.op_val == OP_ADD || node->left->value.op_val == OP_SUB)
+                        {
+                            tex_print ("(");
+                            tex_print_node (node->left, tex_file);
+                            tex_print (")");
+                        }
+                        else
+                        {
+                            tex_print_node (node->left, tex_file);
+                        }
+                    }
+                    else
+                    {
+                        tex_print_node (node->left, tex_file);
+                    }
 
-                    tex_print_node (node->left, tex_file);
+                    tex_print ("\\times");
 
-                    tex_print (")\\times (");
-
-                    tex_print_node (node->right, tex_file);
-
-                    tex_print (")");
+                    if (node->right->type == TYPE_OP)
+                    {
+                        if (node->right->value.op_val == OP_ADD || node->right->value.op_val == OP_SUB)
+                        {
+                            tex_print ("(");
+                            tex_print_node (node->right, tex_file);
+                            tex_print (")");
+                        }
+                        else
+                        {
+                            tex_print_node (node->right, tex_file);
+                        }
+                    }
+                    else
+                    {
+                        tex_print_node (node->right, tex_file);
+                    }
 
                     break;
                 }
@@ -138,11 +170,20 @@ void tex_print_node (const Node *node, FILE *tex_file)
                 }
                 case OP_DEG:
                 {
-                    tex_print ("(");
+                    if (node->left->type == TYPE_OP)
+                    {
+                        tex_print ("(");
 
-                    tex_print_node (node->left, tex_file);
+                        tex_print_node (node->left, tex_file);
 
-                    tex_print (")^{");
+                        tex_print (")");
+                    }
+                    else
+                    {
+                        tex_print_node (node->left, tex_file);
+                    }
+
+                    tex_print ("^{");
 
                     tex_print_node (node->right, tex_file);
 
@@ -185,7 +226,6 @@ void tex_print_node (const Node *node, FILE *tex_file)
         }
     }
 }
-#undef tex_print
 
 void print_tex_header (FILE *tex_file)
 {
@@ -196,16 +236,91 @@ void print_tex_header (FILE *tex_file)
                         "\\usepackage{euscript}\n"
                         "\\usepackage{mathrsfs}\n"
                         "\\usepackage{amssymb}\n"
+                        "\\usepackage[12pt]{extsizes}\n"
                         "\\renewcommand{\\familydefault}{\\rmdefault}\n"
-                        "\\title{Идеи решения задач тысячелетия путем дифференцированного исчисления}\n"
+                        "\\title{\\textbf {Идеи решения задач тысячелетия путем дифференцированного исчисления}}\n"
                         "\\author{Мишенков Даниил Николаевич,\\\\\n"
                         "\t\tдоцент кафедры высшей философии МГУ}\n"
-                        "\\date{ноябрь 2022}\n"
+                        "\\date{\\textit {\\normalsize {ноябрь 2022}}}\n"
                         "\\begin{document}\n"
                         "\\maketitle\n");
+}
+
+void new_section (FILE *tex_file)
+{
+    tex_print ("\\section {}\n");
+}
+
+void print_original_function (const char *func_name, Tree *func, FILE *tex_file)
+{
+    tex_print ("Рассмотрим следующую функцию:\\newline\n");
+
+    print_function (func_name, func, tex_file);
+
+    tex_print ("Очевидно, что понять логику ее работы просто так невозможно, поэтому "
+               "необходимо провести комплексный анализ данной функции.\\newline\\newline\n");
+}
+
+void print_function (const char *func_name, Tree *func, FILE *tex_file)
+{
+    unsigned int err = 0;
+
+    tree_check (func, &err);
+
+    tex_print ("\\[%s(x) = ", func_name);
+    tex_print_node (func->root, tex_file);
+    tex_print ("\\]\\newline\n");
+}
+
+void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, int diff_order)
+{
+    unsigned int err = 0;
+    tree_check (diff_func, &err);
+
+    if (diff_order == 1)
+    {
+        tex_print ("\\[%s'(x) = ", func_name);
+    }
+    else
+    {
+        tex_print ("\\[%s^{(%d)}(x) = ", func_name, diff_order);
+    }
+
+    tex_print_node (diff_func->root, tex_file);
+
+    tex_print ("\\]\\newline\n");
+}
+
+void print_point_value (const char *func_name, double point, double point_value, FILE *tex_file)
+{
+    tex_print ("Найдем значение функции в точке %.2lf знаменитым в 17 веке методом буль-буль"
+                       " (aka вы увидите только ответ).\\newline", point);
+
+    if (point_value == NAN)
+    {
+        tex_print ("функция не определена в точке a = %.2lf.\\newline", point);
+    }
+    else
+    {
+        tex_print ("\\[%s(a) = %.2lf, где a = %.2lf\\]\\newline", func_name, point_value, point);
+    }
+}
+
+void print_decompose_tree (const char *func_name, Tree *decompose_tree, double decompose_point, int decompose_order,
+                           FILE *tex_file)
+{
+    unsigned int err = 0;
+    tree_check (decompose_tree, &err);
+
+    tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке а = %.2lf\\newline\n", decompose_order, decompose_point);
+
+    tex_print ("f(a) = ");
+
+    tree_tex_print (nullptr, decompose_tree->root, tex_file);
 }
 
 void print_tex_ending (FILE *tex_file)
 {
     fprintf (tex_file, "\\end {document}");
 }
+#undef tex_print
