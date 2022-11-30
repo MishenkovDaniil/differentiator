@@ -6,13 +6,27 @@
 #include "tree_diff.h"
 #include "func_value.h"
 #include "decomposition.h"
+#include "../tree_convolution.h"
 
 #define create_num(num)                 tree_create_num (num)
 #define create_var(var)                 tree_create_node (TYPE_VAR, #var)
 #define ADD(left_node, right_node)      tree_create_node (TYPE_OP, "OP_ADD", left_node, right_node)
 #define SUB(left_node, right_node)      tree_create_node (TYPE_OP, "OP_SUB", left_node, right_node)
 #define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
+#define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
+
+int factorial (int number)
+{
+    int result = 1;
+
+    for (int i = 1; i <= number; i++)
+    {
+        result *= i;
+    }
+
+    return result;
+}
 
 Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double point)
 {
@@ -29,6 +43,8 @@ Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double 
 
     for (int i = 1; i <= max_diff_order; i++)
     {
+        //tree_convolution (diff_tree_root);
+
         values[i] = node_point_value (diff_tree_root, point);
 
         if (i == 1)
@@ -37,7 +53,7 @@ Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double 
         }
         else
         {
-            taylor = ADD (taylor, MUL (create_num (values[i]), DEG (SUB (create_var (x), create_num (point)), create_num (i))));
+            taylor = ADD (taylor, MUL (DIV (create_num (values[i]), create_num (factorial (i))), DEG (SUB (create_var (x), create_num (point)), create_num (i))));
         }
 
         Node *temp_node = diff_tree_root;
@@ -50,6 +66,7 @@ Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double 
         tree_free (temp_node);
     }
 
+    tree_convolution (taylor);
     taylor_tree->root = taylor;
 
     free (values);
@@ -62,4 +79,5 @@ Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double 
 #undef ADD
 #undef SUB
 #undef MUL
+#undef DIV
 #undef DEG
