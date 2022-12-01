@@ -15,5 +15,8 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
 void print_point_value (const char *func_name, double point, double point_value, FILE *tex_file);
 void print_decompose_tree (const char *func_name, Tree *decompose_tree, double decompose_point, int decompose_order,
                            FILE *tex_file);
+void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const char *input_file_name,
+                        Tree *func, FILE *tex_file);
+bool func_for_gnuplot (Node *func_node, char *graphic_func);
 
 #endif /* TREE_OUTPUT_H */
