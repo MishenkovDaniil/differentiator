@@ -194,21 +194,6 @@ Node *GetNodeN (const char **expr)
     char *new_expr = nullptr;
     value = strtod (*expr, &new_expr);
     *expr = new_expr;
-    /*int sign = 1;
-
-    if (**expr == '+' || **expr == '-')
-    {
-        if (*(*expr++) == '-')
-        {
-            sign = -1;
-        }
-    }
-    while ('0' <= **expr && **expr <= '9')
-    {
-        value = value*10 + **expr - '0';
-        printf ("%d", value);
-        (*expr)++;
-    }*/
 
     Node *result = create_num (value);
     result->value.dbl_val = value;
