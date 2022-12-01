@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage[english, russian]{babel}
+\usepackage{euscript}
+\usepackage{mathrsfs}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[12pt]{extsizes}
+\renewcommand{\familydefault}{\rmdefault}
+\title{\textbf {Идеи решения задач тысячелетия путем дифференцированного исчисления}}
+\author{Мишенков Даниил Николаевич,\\
+		доцент кафедры высшей философии МГУ}
+\date{\textit {\normalsize {ноябрь 2022}}}
+\begin{document}
+\maketitle
+\section {}
+Рассмотрим следующую функцию:\newline
+\[f(x) = \frac{ x ^{ 5 }+ 2.13 }{ x - 0.50 }\]\newline
+Очевидно, что понять логику ее работы просто так невозможно, поэтому необходимо провести комплексный анализ данной функции.\newline\newline
+Упростим функцию, чтобы с ней было более удобно работать.\newline
+Получим следующий результат:\newline\newline
+\[f(x) = \frac{ x ^{ 5 }+ 2.13 }{ x - 0.50 }\]\newline
+Найдем значение функции в точке 1.00 знаменитым в 17 веке методом буль-буль (aka вы увидите только ответ).\newline\[f(a) = 6.26, где a = 1.00\]\newlineНайдем производную 1 порядка этой функции методом Шварцвальда III\newline
+В СССР следующий результат было стыдно записывать\newline
+\[( 0.50 )' =  0 \]\newline
+В СССР следующий результат было стыдно записывать\newline
+\[( x )' =  1 \]\newline
+Очевидно, что\newline
+\[( x - 0.50 )' =  1 - 0 \]\newline
+В СССР следующий результат было стыдно записывать\newline
+\[( 2.13 )' =  0 \]\newline
+В СССР следующий результат было стыдно записывать\newline
+\[( x )' =  1 \]\newline
+Очевидно, что\newline
+\[( x ^{ 5 })' =  x ^{ 5 - 1 }\times 1 \times 5 \]\newline
+В СССР следующий результат было стыдно записывать\newline
+\[( x ^{ 5 }+ 2.13 )' =  x ^{ 5 - 1 }\times 1 \times 5 + 0 \]\newline
+В СССР следующий результат было стыдно записывать\newline
+\[(\frac{ x ^{ 5 }+ 2.13 }{ x - 0.50 })' = \frac{( x ^{ 5 - 1 }\times 1 \times 5 + 0 )\times( x - 0.50 )-(( x ^{ 5 }+ 2.13 )\times( 1 - 0 ))}{( x - 0.50 )\times( x - 0.50 )}\]\newline
+Для простоты запишем этот результат так:\newline
+\[f'(x) = \frac{ x ^{ 4 }\times 5 \times( x - 0.50 )-( x ^{ 5 }+ 2.13 )}{( x - 0.50 )\times( x - 0.50 )}\]\newline
+Разложим функцию (по Тейлору) до $o(x^{1})$ в точке а = 1.00\newline
+f(a) = \[ 6.26 + -2.52 \times( x - 1 )\]\newline
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{func.png}
+\caption{график функций полученный после комплексного анализа}
+\label{fig:mpr}
+\end{figure}
+\end {document}
