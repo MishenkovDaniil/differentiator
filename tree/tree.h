@@ -47,6 +47,7 @@ struct Tree
 static unsigned int DEF_ERRNO = 0;
 
 Node *tree_create_node (Type type, const char *value, Node *left = nullptr, Node *right = nullptr);
+Node *tree_create_num (double val, Node *left = nullptr, Node *right = nullptr);
 
 void swap_nodes (Node **first_node, Node **second_node);
 

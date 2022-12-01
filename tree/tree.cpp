@@ -101,6 +101,35 @@ Node *tree_create_node (Type type, const char *value, Node *left, Node *right)
     return node;
 }
 
+Node *tree_create_num (double val, Node *left, Node *right)
+{
+    Node *node = (Node *)calloc (1, sizeof (Node));
+    assert (node);
+
+    if (node == nullptr)
+    {
+        return printf ("calloc failed"), nullptr;
+    }
+
+    node->type = TYPE_NUM;
+
+    node->value.dbl_val = val;
+
+    node->left = left;
+    node->right = right;
+
+    if (node->left)
+    {
+        node->left->parent = node;
+    }
+    if (node->right)
+    {
+        node->right->parent = node;
+    }
+
+    return node;
+}
+
 void tree_ctor (Tree *tree, unsigned int *err)
 {
     assert (tree);
