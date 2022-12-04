@@ -4,12 +4,13 @@
 
 #include "../tree.h"
 #include "func_value.h"
+#include "../io/tree_output.h"
 
-#define debug_print(...)                                                        \
-do                                                                              \
-{                                                                               \
-    printf (__VA_ARGS__);                                                       \
-    fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
+#define debug_print(...)                                                                            \
+do                                                                                                  \
+{                                                                                                   \
+    printf (__VA_ARGS__);                                                                           \
+    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
 }while (0)
 
 double func_point_value (Tree *tree, double point)
@@ -44,8 +45,8 @@ double node_point_value (const Node *node, double point)
             #define MUL(lval, rval)     lval * rval
             #define DIV(lval, rval)     lval / rval
             #define DEG(lval, rval)     pow (lval, rval)
-            #define SIN(lval)           sin (lval)
-            #define COS(lval)           cos (lval)
+            #define SIN(rval)           sin (rval)
+            #define COS(rval)           cos (rval)
 
             switch (node->value.op_val)
             {
@@ -81,11 +82,11 @@ double node_point_value (const Node *node, double point)
                 }
                 case OP_SIN:
                 {
-                    return SIN (func_lval);
+                    return SIN (func_rval);
                 }
                 case OP_COS:
                 {
-                    return COS (func_lval);
+                    return COS (func_rval);
                 }
                 default:
                 {

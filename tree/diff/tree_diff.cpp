@@ -10,13 +10,6 @@
 #include "../io/tree_output.h"
 #include "../tree_convolution.h"
 
-#define debug_print(...)                                                        \
-do                                                                              \
-{                                                                               \
-    printf (__VA_ARGS__);                                                       \
-    fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
-}while (0)
-
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
 #define Right                           node->right
@@ -29,11 +22,24 @@ do                                                                              
 #define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
 #define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
-#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node)
-#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node)
+#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", nullptr, node)
+#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", nullptr, node)
 
-static const char *phrases[5] = {"Очевидно, что", "В СССР следующий рещультат было стыдно записывать",
-                               "Будем считать верным, что", "Тогда так", "А тут так"};
+#define debug_print(...)                                                                            \
+do                                                                                                  \
+{                                                                                                   \
+    printf (__VA_ARGS__);                                                                           \
+    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
+}while (0)
+
+#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+
+static const int PHRASES_NUMBER = 8;
+static const char *phrases[PHRASES_NUMBER] = {"Очевидно, что", "В СССР следующий результат было стыдно записывать",
+                                              "Будем считать верным, что", "Тогда так", "А тут так",
+                                              "Более содержительным является следующий результат",
+                                              "Получен важнейший результат",
+                                              "Читатель, в качестве упражнения, может проверить, что"};
 
 Node *find_diff (Node *node, FILE *tex_file, int diff_order, unsigned int *err)
 {
@@ -134,12 +140,12 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
                 }
                 case OP_SIN:
                 {
-                    result = MUL (COS (cL), dL);
+                    result = MUL (COS (cR), dR);
                     break;
                 }
                 case OP_COS:
                 {
-                    result = MUL (MUL(SIN (cL), create_num(-1)), dL);
+                    result = MUL (MUL(SIN (cR), create_num(-1)), dR);
                     break;
                 }
                 default:
@@ -159,7 +165,7 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
 
     if (is_to_print)
     {
-        fprintf (tex_file, "%s\\newline\n", phrases[rand() % 5]);
+        fprintf (tex_file, "%s\\newline\n", phrases[rand() % PHRASES_NUMBER]);
         tree_tex_print (node, result, tex_file, true);
     }
 
@@ -210,6 +216,8 @@ Node *cpy_node (const Node *node)
 }
 
 #undef create_num
+#undef debug_print
+#undef tex_print
 #undef Left
 #undef Right
 #undef dL

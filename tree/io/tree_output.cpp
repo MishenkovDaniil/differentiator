@@ -8,13 +8,13 @@
 
 #include "../tree.h"
 #include "tree_output.h"
-#include "../../../standart_functions/io/io.h"
+#include "../../../standart_functions/io/io.h" // copy file to differentiator folder
 
-#define debug_print(...)                                                        \
-do                                                                              \
-{                                                                               \
-    printf (__VA_ARGS__);                                                       \
-    fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
+#define debug_print(...)                                                                            \
+do                                                                                                  \
+{                                                                                                   \
+    printf (__VA_ARGS__);                                                                           \
+    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
 }while (0)
 
 #define tex_print(...) fprintf (tex_file, __VA_ARGS__)
@@ -51,6 +51,7 @@ void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_fi
     tex_print ("\\]\\newline\n");
 }
 
+// cpu idea
 void tex_print_node (const Node *node, FILE *tex_file)
 {
     assert (tex_file);
@@ -203,7 +204,7 @@ void tex_print_node (const Node *node, FILE *tex_file)
                 {
                     tex_print ("\\sin(");
 
-                    tex_print_node (node->left, tex_file);
+                    tex_print_node (node->right, tex_file);
 
                     tex_print (")");
 
@@ -213,7 +214,7 @@ void tex_print_node (const Node *node, FILE *tex_file)
                 {
                     tex_print ("\\cos(");
 
-                    tex_print_node (node->left, tex_file);
+                    tex_print_node (node->right, tex_file);
 
                     tex_print (")");
 
@@ -272,6 +273,7 @@ void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const
                             "set xlabel \"x\"\n"
                             "set ylabel \"y\"\n"
                             "set grid\n"
+                            "set samples 1000\n"
                             "set output \"func.png\"\nplot %s", graphic_func);
 
     fflush (graphic_file);
@@ -287,6 +289,8 @@ void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const
     free (graphic_func);
 }
 
+
+// #defines ??? CPU idea
 bool func_for_gnuplot (Node *func_node, char *graphic_func)
 {
     static int shift = 0;
@@ -346,58 +350,26 @@ bool func_for_gnuplot (Node *func_node, char *graphic_func)
                 {
                     break;
                 }
-                case OP_ADD:
-                {
-                    sprintf (graphic_func + shift++, "+");
 
-                    break;
+                #define DEF_OP(name, num, sign, sign_len)       \
+                case OP_##name:                                 \
+                {                                               \
+                    sprintf (graphic_func + shift, #sign);      \
+                    shift += sign_len;                          \
+                                                                \
+                    break;                                      \
                 }
-                case OP_SUB:
-                {
-                    sprintf (graphic_func + shift++, "-");
 
-                    break;
-                }
-                case OP_MUL:
-                {
-                    sprintf (graphic_func + shift++, "*");
+                #include "../../operations.h"
 
-                    break;
-                }
-                case OP_DIV:
-                {
-                    sprintf (graphic_func + shift++, "/");
+                #undef DEF_OP
 
-                    break;
-                }
-                case OP_DEG:
-                {
-                    sprintf (graphic_func + shift, "**");
-                    shift += 2;
-
-                    break;
-                }
-                case OP_SIN:
-                {
-                    sprintf (graphic_func + shift, "sin ");
-                    shift += 4;
-
-                    break;
-                }
-                case OP_COS:
-                {
-                    sprintf (graphic_func + shift, "cos ");
-                    shift += 4;
-
-                    break;
-                }
                 default:
                 {
                     debug_print ("Error: unknown operation type %d", func_node->value.op_val);
                     return false;
                     break;
                 }
-
             }
 
             break;
@@ -464,8 +436,7 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
 
 void print_point_value (const char *func_name, double point, double point_value, FILE *tex_file)
 {
-    tex_print ("Найдем значение функции в точке %.2lf знаменитым в 17 веке методом буль-буль"
-                       " (aka вы увидите только ответ).\\newline", point);
+    tex_print ("Найдем значение функции в точке %.2lf знаменитым в 17 веке методом буль-буль\\newline", point);
 
     if (point_value == NAN)
     {
@@ -485,9 +456,11 @@ void print_decompose_tree (const char *func_name, Tree *decompose_tree, double d
 
     tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке а = %.2lf\\newline\n", decompose_order, decompose_point);
 
-    tex_print ("f(a) = ");
+    tex_print ("\\[f(a) = ");
 
-    tree_tex_print (nullptr, decompose_tree->root, tex_file);
+    tex_print_node (decompose_tree->root, tex_file);
+
+    tex_print ("\\]\\newlinne\n");
 }
 
 void print_tex_ending (FILE *tex_file)

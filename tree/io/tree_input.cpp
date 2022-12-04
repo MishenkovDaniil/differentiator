@@ -14,19 +14,22 @@
 #define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
 #define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
-#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", node)
-#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", node)
-
-#define debug_print(...)                                                        \
-do                                                                              \
-{                                                                               \
-    printf (__VA_ARGS__);                                                       \
-    fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
-}while (0)
+#define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", nullptr, node)
+#define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", nullptr, node)
 
 #include "../tree.h"
 #include "tree_input.h"
-#include "../../../standart_functions/io/io.h"
+#include "tree_output.h"
+#include "../../../standart_functions/io/io.h" //
+
+#define debug_print(...)                                                                            \
+do                                                                                                  \
+{                                                                                                   \
+    printf (__VA_ARGS__);                                                                           \
+    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
+}while (0)
+
+#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
 
 Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name)
 {
@@ -268,3 +271,5 @@ Node *GetNodeV (const char **expr)
 #undef DEG
 #undef SIN
 #undef COS
+#undef debug_print
+#undef tex_print
