@@ -3,6 +3,8 @@
 
 #include "../tree.h"
 
+int get_file_size (const char *file_name);               ///repo onegin ../io/io.cpp
+
 void skip_spaces (const char **str);
 
 Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name);

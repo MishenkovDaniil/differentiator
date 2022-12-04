@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
@@ -20,16 +22,24 @@
 #include "../tree.h"
 #include "tree_input.h"
 #include "tree_output.h"
-#include "../../../standart_functions/io/io.h" //
 
-#define debug_print(...)                                                                            \
-do                                                                                                  \
-{                                                                                                   \
-    printf (__VA_ARGS__);                                                                           \
-    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
-}while (0)
+int get_file_size (const char *file_name)               ///repo onegin ../io/io.cpp
+{
+    struct stat buf = {};
 
-#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+    stat(file_name, &buf);
+    int errnosave = 0;
+
+    if (errno)
+    {
+        errnosave = errno;
+        perror ("stat() failed");
+
+        return errnosave;
+    }
+
+    return buf.st_size;
+}
 
 Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name)
 {
