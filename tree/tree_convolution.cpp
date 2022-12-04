@@ -130,7 +130,20 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
 
     if (val == 0)
     {
-        if ((node->value.op_val == OP_ADD || node->value.op_val == OP_SUB) && node->parent != nullptr)
+        if (node->value.op_val == OP_SIN)
+        {
+            if (node->parent->left == node)
+            {
+                node->parent->left = nullptr;
+            }
+            else
+            {
+                node->parent->right = nullptr;
+            }
+
+            tree_free (node);
+        }
+        else if ((node->value.op_val == OP_ADD || node->value.op_val == OP_SUB) && node->parent != nullptr)
         {
             if (node->parent->left == node)
             {
@@ -167,11 +180,6 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
             node->left = nullptr;
             node->left->parent = nullptr;
         }
-        else
-        {
-            debug_print ("Error: wrong operation type, node %p, op_type %d", node, node->value.op_val);
-            return nullptr;
-        }
     }
     else if (val == 1)
     {
@@ -196,11 +204,23 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
                 tree_free (node);
             }
         }
+    }
+    else if (node->value.op_val == OP_SIN || node->value.op_val == OP_COS)
+    {
+        node->type = TYPE_NUM;
+
+        if (node->value.op_val == OP_SIN)
+        {
+            node->value.dbl_val = sin (num_node_child->value.dbl_val);
+        }
         else
         {
-            debug_print ("Error: wrong operation type, node %p, op_type %d", node, node->value.op_val);
-            return nullptr;
+            node->value.dbl_val = cos (num_node_child->value.dbl_val);
         }
+
+        node->right = nullptr;
+
+        tree_free (num_node_child);
     }
 
     if (is_to_free_children)
