@@ -26,34 +26,17 @@ Node *tree_create_node (Type type, const char *value, Node *left, Node *right)
             {
                 node->value.op_val = OP_DEFAULT;
             }
-            else if (strcasecmp ("OP_ADD", value) == 0)
-            {
-                node->value.op_val = OP_ADD;
+
+            #define DEF_OP(name, num,...)                   \
+            else if (strcasecmp ("OP_"#name, value) == 0)   \
+            {                                               \
+                node->value.op_val = OP_##name;             \
             }
-            else if (strcasecmp ("OP_SUB", value) == 0)
-            {
-                node->value.op_val = OP_SUB;
-            }
-            else if (strcasecmp ("OP_MUL", value) == 0)
-            {
-                node->value.op_val = OP_MUL;
-            }
-            else if (strcasecmp ("OP_DIV", value) == 0)
-            {
-                node->value.op_val = OP_DIV;
-            }
-            else if (strcasecmp ("OP_DEG", value) == 0)
-            {
-                node->value.op_val = OP_DEG;
-            }
-            else if (strcasecmp ("OP_SIN", value) == 0)
-            {
-                node->value.op_val = OP_SIN;
-            }
-            else if (strcasecmp ("OP_COS", value) == 0)
-            {
-                node->value.op_val = OP_COS;
-            }
+
+            #include "../operations.h"
+
+            #undef DEF_OP
+
             else
             {
                 printf ("Error: wrong value type %d", type);
@@ -303,41 +286,20 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
                         fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{node %p | {parent = %p} | {OP | DEFAULT} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, node->left, node->right);
                         break;
                     }
-                    case OP_ADD:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '+', node->left, node->right);
-                        break;
+
+                    #define DEF_OP(name, num, sign,...)                                                                         \
+                    case OP_##name:                                                                                         \
+                    {                                                                                                       \
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\","     \
+                                            "label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t",   \
+                                            graph_num++, node, node->parent, #sign, node->left, node->right);             \
+                        break;                                                                                              \
                     }
-                    case OP_SUB:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '-', node->left, node->right);
-                        break;
-                    }
-                    case OP_MUL:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '*', node->left, node->right);
-                        break;
-                    }
-                    case OP_DIV:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '/', node->left, node->right);
-                        break;
-                    }
-                    case OP_DEG:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, '^', node->left, node->right);
-                        break;
-                    }
-                    case OP_SIN:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, "sin", node->left, node->right);
-                        break;
-                    }
-                    case OP_COS:
-                    {
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, "cos", node->left, node->right);
-                        break;
-                    }
+
+                    #include "../operations.h"
+
+                    #undef DEF_OP
+
                     default:
                     {
                         printf ("Error: wrong node op type in %s", __PRETTY_FUNCTION__);

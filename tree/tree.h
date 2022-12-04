@@ -12,13 +12,9 @@ enum Type
 enum Op_val
 {
     OP_DEFAULT = 0,
-    OP_ADD = 1,
-    OP_SUB = 2,
-    OP_MUL = 3,
-    OP_DIV = 4,
-    OP_DEG = 5,
-    OP_SIN = 6,
-    OP_COS = 7,
+    #define DEF_OP(name, num,...) OP_##name = num,
+    #include "../operations.h"
+    #undef DEF_OP
 };
 
 union Value
