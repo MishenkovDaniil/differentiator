@@ -3,6 +3,15 @@
 
 #include "../tree.h"
 
+#define debug_print(...)                                                                            \
+do                                                                                                  \
+{                                                                                                   \
+    printf (__VA_ARGS__);                                                                           \
+    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
+}while (0)
+
+#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+
 int max (int val_1, int val_2);
 void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff = false, int diff_order = 1);
 void print_tex_header (FILE *tex_file);

@@ -8,16 +8,7 @@
 
 #include "../tree.h"
 #include "tree_output.h"
-#include "../../../standart_functions/io/io.h" // copy file to differentiator folder
-
-#define debug_print(...)                                                                            \
-do                                                                                                  \
-{                                                                                                   \
-    printf (__VA_ARGS__);                                                                           \
-    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
-}while (0)
-
-#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+#include "tree_input.h"
 
 void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff, int diff_order)
 {
@@ -467,4 +458,6 @@ void print_tex_ending (FILE *tex_file)
 {
     fprintf (tex_file, "\\end {document}");
 }
+
+#undef debug_print
 #undef tex_print

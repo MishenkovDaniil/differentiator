@@ -3,13 +3,7 @@
 #include <math.h>
 
 #include "tree_convolution.h"
-
-#define debug_print(...)                                                        \
-do                                                                              \
-{                                                                               \
-    printf (__VA_ARGS__);                                                       \
-    fprintf (stderr, ", func %s in file %s.\n", __PRETTY_FUNCTION__, __FILE__); \
-}while (0)
+#include "io/tree_output.h"
 
 #define Left                            node->left
 #define Right                           node->right
@@ -258,3 +252,4 @@ int is_op (Node *node)
 #undef Left
 #undef Right
 #undef debug_print
+#undef tex_print

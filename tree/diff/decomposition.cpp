@@ -7,6 +7,7 @@
 #include "func_value.h"
 #include "decomposition.h"
 #include "../tree_convolution.h"
+#include "../io/tree_output.h"
 
 #define create_num(num)                 tree_create_num (num)
 #define create_var(var)                 tree_create_node (TYPE_VAR, #var)
@@ -15,15 +16,6 @@
 #define MUL(left_node, right_node)      tree_create_node (TYPE_OP, "OP_MUL", left_node, right_node)
 #define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
-
-#define debug_print(...)                                                                            \
-do                                                                                                  \
-{                                                                                                   \
-    printf (__VA_ARGS__);                                                                           \
-    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
-}while (0)
-
-#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
 
 int factorial (int number)
 {

@@ -25,15 +25,6 @@
 #define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", nullptr, node)
 #define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", nullptr, node)
 
-#define debug_print(...)                                                                            \
-do                                                                                                  \
-{                                                                                                   \
-    printf (__VA_ARGS__);                                                                           \
-    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
-}while (0)
-
-#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
-
 static const int PHRASES_NUMBER = 8;
 static const char *phrases[PHRASES_NUMBER] = {"Очевидно, что", "В СССР следующий результат было стыдно записывать",
                                               "Будем считать верным, что", "Тогда так", "А тут так",
@@ -216,8 +207,6 @@ Node *cpy_node (const Node *node)
 }
 
 #undef create_num
-#undef debug_print
-#undef tex_print
 #undef Left
 #undef Right
 #undef dL
@@ -231,3 +220,5 @@ Node *cpy_node (const Node *node)
 #undef DEG
 #undef SIN
 #undef COS
+#undef debug_print
+#undef tex_print

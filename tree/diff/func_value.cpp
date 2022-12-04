@@ -6,13 +6,6 @@
 #include "func_value.h"
 #include "../io/tree_output.h"
 
-#define debug_print(...)                                                                            \
-do                                                                                                  \
-{                                                                                                   \
-    printf (__VA_ARGS__);                                                                           \
-    fprintf (stderr, ", func %s in file %s, line %d.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);  \
-}while (0)
-
 double func_point_value (Tree *tree, double point)
 {
     double result = node_point_value (tree->root, point);
@@ -114,4 +107,5 @@ double node_point_value (const Node *node, double point)
     }
 }
 
+#undef tex_print
 #undef debug_print
