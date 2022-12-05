@@ -10,10 +10,27 @@
 #include "tree/tree_convolution.h"
 #include "tree/diff/func_value.h"
 #include "tree/diff/decomposition.h"
+#include "config.h"
 
-#define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+// diff --input equation -o book.tex --taylor 4 3.21 --plot graph.png --eval 6.2342341235
+// 1. Все опции должны быть как long так и short: --taylor -t
+// 2. Must be --help
+// 3. Способ легко добавить твои опции
 
-int main ()
+// while (...) {
+//    for (int i ...)
+//        if (strcmp(input, options[i].string))
+//            options[i].action(next token);
+//}
+// argv argc
+// struct Option {
+//    name = "asdf";
+//    func *action;
+//}
+
+// getopt()
+
+int main (int argc, const char **argv)
 {
     const char *input_file_name   = "def_input.txt";
     const char *tex_file_name     = "AAAAAA_diffurs.txt";
@@ -26,86 +43,57 @@ int main ()
     FILE *input_file   = fopen (input_file_name, "r");
     FILE *tex_file     = fopen (tex_file_name, "w");
     FILE *graphic_file = fopen (graphic_file_name, "w");
+
+    if (input_file == nullptr)
+    {
+        perror ("fopen of input file failed");
+        return 0;
+    }
+    if (tex_file == nullptr)
+    {
+        perror ("fopen of tex file failed");
+        return 0;
+    }
+    if (graphic_file == nullptr)
+    {
+        perror ("fopen of graphic file failed");
+        return 0;
+    }
+
     assert (input_file);
     assert (tex_file);
     assert (graphic_file);
 
-    Tree func = {};
-    tree_fill (&func, input_file, input_file_name);
+
+    Config config = {};
+
+    if (get_config (&config) == false)
+    {
+        return 0;
+    }
+
+    Tree expr = {};
+    tree_fill (&expr, input_file, input_file_name);
 
     print_tex_header (tex_file);
     new_section (tex_file);
 
-//printing function
+    tex_print_func (func_name, &expr, tex_file);
 
-    print_original_function (func_name, &func, tex_file);
+    tex_find_point_value (&expr, func_name, &config, tex_file);
 
-    tex_print ("Упростим функцию, чтобы с ней было более удобно работать.\\newline\n"
-               "Получим следующий результат:\\newline\\newline\n");
-    tree_convolution (func.root);
+    tex_find_diff (&expr, func_name, &config, tex_file);
 
-    print_function (func_name, &func, tex_file);
+    tex_decompose_func (&expr, func_name, graphic_file_name, input_file_name, &config, tex_file, graphic_file);
 
-//printing and finding func value in point
-    double point = 0;
-
-    printf ("Enter point a to find f(a):");
-    scanf ("%lf", &point);
-
-    double func_value = func_point_value (&func, point);
-
-    print_point_value (func_name, point, func_value, tex_file);
-
-//printing and finding func diff
-    int diff_order = 0;
-
-    printf ("Enter diff order to find: ");
-    scanf ("%d", &diff_order);
-
-    tex_print ("Найдем производную %d порядка этой функции методом Шварцвальда III\\newline\n", diff_order);
-
-    if (diff_order <= 0)
-    {
-        printf ("Error: diff order must be above zero");
-        return 0;
-    }
-
-    Tree def_tree = {};
-
-    def_tree.root = find_diff (func.root, tex_file, diff_order);
-    tree_check (&def_tree, err);
-    tex_print ("Для простоты запишем этот результат так:\\newline\n");
-    tree_convolution (def_tree.root);
-
-    print_diff_func (func_name, &def_tree, tex_file, diff_order);
-
-//decomposing tree by Taylor and printing decomposition
-    int decompose_order = 0;
-    double decompose_point = 0;
-
-    printf ("Enter decomposition order: ");
-    scanf ("%d", &decompose_order);
-    printf ("And enter point of decomposition: ");
-    scanf ("%lf", &decompose_point);
-
-    Tree decompose_tree = {};
-    decompose (&decompose_tree, func.root, decompose_order, decompose_point);
-
-    print_decompose_tree (func_name, &decompose_tree, decompose_point, decompose_order, tex_file);
-
-    tex_print_graphic (graphic_file, graphic_file_name, input_file_name, &func, tex_file);
-
-//generating tex ends
     print_tex_ending (tex_file);
 
-//closing and freeing
     fclose (tex_file);
     fclose (input_file);
     fclose (graphic_file);
 
-    tree_dtor (&decompose_tree);
-    tree_dtor (&def_tree);
-    tree_dtor (&func);
+    tree_dtor (&expr);
 }
 
 #undef tex_print
+#undef debug_print
