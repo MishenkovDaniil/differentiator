@@ -2,6 +2,9 @@
 #define TREE_INPUT_H
 
 #include "../tree.h"
+#include "../../config.h"
+
+bool get_config (Config *config);
 
 int get_file_size (const char *file_name);               ///repo onegin ../io/io.cpp
 

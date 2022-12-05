@@ -22,6 +22,42 @@
 #include "../tree.h"
 #include "tree_input.h"
 #include "tree_output.h"
+#include "../../config.h"
+
+bool get_config (Config *config)
+{
+    printf ("Enter point a to find f(a):");
+
+    if (scanf (" %lf", &config->point) == 0)
+    {
+        fprintf (stderr, "Error: bad input data (func point).\n");
+        return false;
+    }
+
+    printf ("Enter diff order to find: ");
+
+    if (scanf (" %d", &config->diff_order) == 0)
+    {
+        fprintf (stderr, "Error: bad input data (diff order).\n");
+        return false;
+    }
+
+    printf ("Enter decomposition order and point of decomposition: ");
+
+    if (scanf (" %d %lf", &config->decompose_order, &config->decompose_point) < 2)
+    {
+        fprintf (stderr, "Error: bad input data (config for decompose func).\n");
+        return false;
+    }
+
+    if (config->diff_order <= 0 || config->decompose_order <= 0)
+    {
+        printf ("Error: diff order must be above zero");
+        return false;
+    }
+
+    return true;
+}
 
 int get_file_size (const char *file_name)               ///repo onegin ../io/io.cpp
 {
