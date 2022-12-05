@@ -16,32 +16,40 @@
 \maketitle
 \section {}
 Рассмотрим следующую функцию:\newline
-\[f(x) = \frac{ x ^{ 5 }+ 2.13 }{ x - 0.50 }\]\newline
+\[f(x) = \frac{\sin(\sin( x ))+ 1 }{ x -( 2 \times\sin( x ))}\]\newline
 Очевидно, что понять логику ее работы просто так невозможно, поэтому необходимо провести комплексный анализ данной функции.\newline\newline
 Упростим функцию, чтобы с ней было более удобно работать.\newline
 Получим следующий результат:\newline\newline
-\[f(x) = \frac{ x ^{ 5 }+ 2.13 }{ x - 0.50 }\]\newline
-Найдем значение функции в точке 1.00 знаменитым в 17 веке методом буль-буль (aka вы увидите только ответ).\newline\[f(a) = 6.26, где a = 1.00\]\newlineНайдем производную 1 порядка этой функции методом Шварцвальда III\newline
-В СССР следующий результат было стыдно записывать\newline
-\[( 0.50 )' =  0 \]\newline
-В СССР следующий результат было стыдно записывать\newline
+\[f(x) = \frac{\sin(\sin( x ))+ 1 }{ x -( 2 \times\sin( x ))}\]\newline
+Найдем значение функции в точке 1.00 знаменитым в 17 веке методом буль-буль\newline\[f(a) = -2.56, где a = 1.00\]\newlineНайдем производную 1 порядка этой функции методом Шварцвальда III\newline
+Читатель, в качестве упражнения, может проверить, что\newline
 \[( x )' =  1 \]\newline
-Очевидно, что\newline
-\[( x - 0.50 )' =  1 - 0 \]\newline
-В СССР следующий результат было стыдно записывать\newline
-\[( 2.13 )' =  0 \]\newline
-В СССР следующий результат было стыдно записывать\newline
+Будем считать верным, что\newline
+\[(\sin( x ))' = \cos( x )\times 1 \]\newline
+Читатель, в качестве упражнения, может проверить, что\newline
+\[( 2 )' =  0 \]\newline
+Будем считать верным, что\newline
+\[( 2 \times\sin( x ))' =  0 \times\sin( x )+ 2 \times\cos( x )\times 1 \]\newline
+Читатель, в качестве упражнения, может проверить, что\newline
 \[( x )' =  1 \]\newline
-Очевидно, что\newline
-\[( x ^{ 5 })' =  x ^{ 5 - 1 }\times 1 \times 5 \]\newline
-В СССР следующий результат было стыдно записывать\newline
-\[( x ^{ 5 }+ 2.13 )' =  x ^{ 5 - 1 }\times 1 \times 5 + 0 \]\newline
-В СССР следующий результат было стыдно записывать\newline
-\[(\frac{ x ^{ 5 }+ 2.13 }{ x - 0.50 })' = \frac{( x ^{ 5 - 1 }\times 1 \times 5 + 0 )\times( x - 0.50 )-(( x ^{ 5 }+ 2.13 )\times( 1 - 0 ))}{( x - 0.50 )\times( x - 0.50 )}\]\newline
+Будем считать верным, что\newline
+\[( x -( 2 \times\sin( x )))' =  1 -( 0 \times\sin( x )+ 2 \times\cos( x )\times 1 )\]\newline
+Читатель, в качестве упражнения, может проверить, что\newline
+\[( 1 )' =  0 \]\newline
+Читатель, в качестве упражнения, может проверить, что\newline
+\[( x )' =  1 \]\newline
+Будем считать верным, что\newline
+\[(\sin( x ))' = \cos( x )\times 1 \]\newline
+Получен важнейший результат\newline
+\[(\sin(\sin( x )))' = \cos(\sin( x ))\times\cos( x )\times 1 \]\newline
+Читатель, в качестве упражнения, может проверить, что\newline
+\[(\sin(\sin( x ))+ 1 )' = \cos(\sin( x ))\times\cos( x )\times 1 + 0 \]\newline
+А тут так\newline
+\[(\frac{\sin(\sin( x ))+ 1 }{ x -( 2 \times\sin( x ))})' = \frac{(\cos(\sin( x ))\times\cos( x )\times 1 + 0 )\times( x -( 2 \times\sin( x )))-((\sin(\sin( x ))+ 1 )\times( 1 -( 0 \times\sin( x )+ 2 \times\cos( x )\times 1 )))}{( x -( 2 \times\sin( x )))\times( x -( 2 \times\sin( x )))}\]\newline
 Для простоты запишем этот результат так:\newline
-\[f'(x) = \frac{ x ^{ 4 }\times 5 \times( x - 0.50 )-( x ^{ 5 }+ 2.13 )}{( x - 0.50 )\times( x - 0.50 )}\]\newline
-Разложим функцию (по Тейлору) до $o(x^{1})$ в точке а = 1.00\newline
-f(a) = \[ 6.26 + -2.52 \times( x - 1 )\]\newline
+\[f'(x) = \frac{\cos(\sin( x ))\times\cos( x )\times( x -( 2 \times\sin( x )))-((\sin(\sin( x ))+ 1 )\times( 1 -( 2 \times\cos( x ))))}{( x -( 2 \times\sin( x )))\times( x -( 2 \times\sin( x )))}\]\newline
+Разложим функцию (по Тейлору) до $o(x^{2})$ в точке а = 3.14\newline
+\[f(a) =  0.32 + -0.62 \times( x - 3.14 )+ 0.60 \times( x - 3.14 )^{ 2 }\]\newlinne
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.8\linewidth]{func.png}
