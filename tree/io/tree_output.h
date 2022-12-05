@@ -2,6 +2,7 @@
 #define TREE_OUTPUT_H
 
 #include "../tree.h"
+#include "../../config.h"
 
 #define debug_print(...)                                                                            \
 do                                                                                                  \
@@ -11,6 +12,13 @@ do                                                                              
 }while (0)
 
 #define tex_print(...) fprintf (tex_file, __VA_ARGS__)
+
+void tex_print_func (const char *func_name, Tree *expr, FILE *tex_file);
+void tex_find_point_value (Tree *expr, const char *func_name, Config *config, FILE *tex_file);
+void tex_find_diff (Tree *expr, const char *func_name, Config *config, FILE *tex_file);
+void tex_decompose_func (Tree *expr, const char *func_name, const char *graphic_file_name, const char *input_file_name,
+                         Config *config, FILE *tex_file, FILE *graphic_file);
+
 
 int max (int val_1, int val_2);
 void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff = false, int diff_order = 1);

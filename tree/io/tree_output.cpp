@@ -9,6 +9,66 @@
 #include "../tree.h"
 #include "tree_output.h"
 #include "tree_input.h"
+#include "../../config.h"
+#include "../diff/tree_diff.h"
+#include "../tree_convolution.h"
+#include "../diff/func_value.h"
+#include "../diff/decomposition.h"
+
+static unsigned int err = 0;
+
+void tex_print_func (const char *func_name, Tree *expr, FILE *tex_file)
+{
+    tree_check (expr, &err);
+
+    print_original_function (func_name, expr, tex_file);
+
+    tex_print ("Упростим функцию, чтобы с ней было более удобно работать.\\newline\n"
+               "Получим следующий результат:\\newline\\newline\n");
+    tree_convolution (expr->root);
+
+    print_function (func_name, expr, tex_file);
+}
+
+void tex_find_point_value (Tree *expr, const char *func_name, Config *config, FILE *tex_file)
+{
+    double func_value = func_point_value (expr, config->point);
+
+    print_point_value (func_name, config->point, func_value, tex_file);
+}
+
+void tex_find_diff (Tree *expr, const char *func_name, Config *config, FILE *tex_file)
+{
+    tex_print ("Найдем производную %d порядка этой функции методом Шварцвальда III\\newline\n", config->diff_order);
+
+    Tree def_tree = {};
+
+    def_tree.root = find_diff (expr->root, tex_file, config->diff_order);
+
+    tree_check (&def_tree, &err);
+
+    tex_print ("Для простоты запишем этот результат так:\\newline\n");
+
+    tree_convolution (def_tree.root);
+
+    print_diff_func (func_name, &def_tree, tex_file, config->diff_order);
+
+    tree_dtor (&def_tree);
+}
+
+void tex_decompose_func (Tree *expr, const char *func_name, const char *graphic_file_name, const char *input_file_name,
+                         Config *config, FILE *tex_file, FILE *graphic_file)
+{
+    Tree decompose_tree = {};
+    decompose (&decompose_tree, expr->root, config->decompose_order, config->decompose_point);
+
+    print_decompose_tree (func_name, &decompose_tree, config->decompose_point, config->decompose_order, tex_file);
+
+    tex_print_graphic (graphic_file, graphic_file_name, input_file_name, expr, tex_file);
+
+    tree_dtor (&decompose_tree);
+}
+
 
 void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff, int diff_order)
 {
@@ -397,8 +457,6 @@ void print_original_function (const char *func_name, Tree *func, FILE *tex_file)
 
 void print_function (const char *func_name, Tree *func, FILE *tex_file)
 {
-    unsigned int err = 0;
-
     tree_check (func, &err);
 
     tex_print ("\\[%s(x) = ", func_name);
@@ -408,7 +466,6 @@ void print_function (const char *func_name, Tree *func, FILE *tex_file)
 
 void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, int diff_order)
 {
-    unsigned int err = 0;
     tree_check (diff_func, &err);
 
     if (diff_order == 1)
@@ -442,7 +499,6 @@ void print_point_value (const char *func_name, double point, double point_value,
 void print_decompose_tree (const char *func_name, Tree *decompose_tree, double decompose_point, int decompose_order,
                            FILE *tex_file)
 {
-    unsigned int err = 0;
     tree_check (decompose_tree, &err);
 
     tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке а = %.2lf\\newline\n", decompose_order, decompose_point);
