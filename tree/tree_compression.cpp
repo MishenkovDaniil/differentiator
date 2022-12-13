@@ -58,13 +58,13 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
         assert (dst_compress_node);
     }
 
-    if ((len_1 > max_len) && (len_1 < 2*max_len))// && (tree_compression (src_tree, dst_tree, compress_node->left) == nullptr))
+    if ((len_1 > max_len) && (len_1 < 2*max_len))
     {
         assert (dst_compress_node);
 
         char var[10] = "";
 
-        sprintf (var, "A_%d", index++);
+        sprintf (var, "A_{%d}", index++);
 
         dst_compress_node->left->type = TYPE_VAR;
         dst_compress_node->left->value.var = (char *)calloc (6, sizeof (char));
@@ -75,15 +75,14 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
     else if (len_1 > 2*max_len)
     {
         tree_compression (src_tree, dst_tree, compress_node->left);
-        is_compressed = true;
     }
 
-    if (len_2 > max_len && len_2 < 2*max_len)// && (tree_compression (src_tree, dst_tree, compress_node->right) == nullptr))
+    if ((len_2 > max_len) && (len_2 < 2*max_len))
     {
         assert (dst_compress_node);
 
-        char var[6] = "";
-        sprintf (var, "A_%d", index++);
+        char var[10] = "";
+        sprintf (var, "A_{%d}", index++);
 
         dst_compress_node->right->type = TYPE_VAR;
         dst_compress_node->right->value.var = (char *)calloc (6, sizeof (char));
@@ -93,9 +92,7 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
     }
     else if (len_2 > 2*max_len)
     {
-            tree_compression (src_tree, dst_tree, compress_node->right);
-
-            is_compressed = true;
+        tree_compression (src_tree, dst_tree, compress_node->right);
     }
 
     if (!(is_compressed))
