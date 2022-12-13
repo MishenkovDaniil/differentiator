@@ -184,7 +184,6 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
         Tree tree_2 = {};
         tree_2.root = result;
         Tree dst_tree_2 = {};
-        tree_2.root = result;
 
         if (tree_compression (&tree_2, &dst_tree_2) == nullptr)
         {
