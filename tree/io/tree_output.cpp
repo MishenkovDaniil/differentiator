@@ -135,7 +135,6 @@ void tree_tex_print_compressed (const Node *left_part, const Node *right_part, c
 
 }
 
-// cpu idea
 void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *original_node)
 {
     static const char *char_labels[20] = {};
@@ -146,7 +145,7 @@ void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *or
     is_not_start++;
     assert (tex_file);
 
-    if (node == nullptr)
+    if (node == nullptr || original_node == nullptr)
     {
         return;
     }
@@ -189,149 +188,50 @@ void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *or
             {
                 case OP_DEFAULT:
                     break;
-                case OP_ADD:
-                {
-                    tex_print_compressed_node (node->left, tex_file, original_node->left);
 
-                    tex_print ("+");
-
-                    tex_print_compressed_node (node->right, tex_file, original_node->right);
-
-                    break;
+                #define DEF_OP(name, num, sign, sign_len, plot_sign, tex_pre_sign, tex_left_cond, tex_mid_sign, tex_right_cond, tex_end_sign)   \
+                case OP_##name:                                                                                                                 \
+                {                                                                                                                               \
+                    tex_print (tex_pre_sign);                                                                                                   \
+                                                                                                                                                \
+                    if ((tex_left_cond) && node->left)                                                                                                          \
+                    {                                                                                                                           \
+                        tex_print ("(");                                                                                                        \
+                        tex_print_compressed_node (node->left, tex_file, original_node->left);                                                  \
+                        tex_print (")");                                                                                                        \
+                    }                                                                                                                           \
+                    else if (node->left)                                                                                                                       \
+                    {                                                                                                                           \
+                        tex_print_compressed_node (node->left, tex_file, original_node->left);                                                  \
+                    }                                                                                                                           \
+                                                                                                                                                \
+                    tex_print (tex_mid_sign);                                                                                                   \
+                                                                                                                                                \
+                    if (tex_right_cond)                                                                                                         \
+                    {                                                                                                                           \
+                        tex_print ("(");                                                                                                        \
+                        tex_print_compressed_node (node->right, tex_file, original_node->right);                                                \
+                        tex_print (")");                                                                                                        \
+                    }                                                                                                                           \
+                    else                                                                                                                        \
+                    {                                                                                                                           \
+                        tex_print_compressed_node (node->right, tex_file, original_node->right);                                                \
+                    }                                                                                                                           \
+                                                                                                                                                \
+                    tex_print (tex_end_sign);                                                                                                   \
+                                                                                                                                                \
+                    break;                                                                                                                      \
                 }
-                case OP_SUB:
-                {
-                    tex_print_compressed_node (node->left, tex_file, original_node->left);
 
-                    tex_print ("-");
+                #include "../../operations.h"
 
-                    if (node->right->type == TYPE_OP)
-                    {
-                        tex_print ("(");
-                        tex_print_compressed_node (node->right, tex_file, original_node->right);
-                        tex_print (")");
-                    }
-                    else
-                    {
-                        tex_print_compressed_node (node->right, tex_file, original_node->right);
-                    }
-
-                    break;
-                }
-                case OP_MUL:
-                {
-                    if (node->left->type == TYPE_OP)
-                    {
-                        if (node->left->value.op_val == OP_ADD || node->left->value.op_val == OP_SUB)
-                        {
-                            tex_print ("(");
-                            tex_print_compressed_node (node->left, tex_file, original_node->left);
-                            tex_print (")");
-                        }
-                        else
-                        {
-                            tex_print_compressed_node (node->left, tex_file, original_node->left);
-                        }
-                    }
-                    else
-                    {
-                        tex_print_compressed_node (node->left, tex_file, original_node->left);
-                    }
-
-                    tex_print ("\\times");
-
-                    if (node->right->type == TYPE_OP)
-                    {
-                        if (node->right->value.op_val == OP_ADD || node->right->value.op_val == OP_SUB)
-                        {
-                            tex_print ("(");
-                            tex_print_compressed_node (node->right, tex_file, original_node->right);
-                            tex_print (")");
-                        }
-                        else
-                        {
-                            tex_print_compressed_node (node->right, tex_file, original_node->right);
-                        }
-                    }
-                    else
-                    {
-                        tex_print_compressed_node (node->right, tex_file, original_node->right);
-                    }
-
-                    break;
-                }
-                case OP_DIV:
-                {
-                    tex_print ("\\frac{");
-
-                    tex_print_compressed_node (node->left, tex_file, original_node->left);
-
-                    tex_print ("}{");
-
-                    tex_print_compressed_node (node->right, tex_file, original_node->right);
-
-                    tex_print ("}");
-
-                    break;
-                }
-                case OP_DEG:
-                {
-                    if (node->left->type == TYPE_OP)
-                    {
-                        tex_print ("(");
-
-                        tex_print_compressed_node (node->left, tex_file, original_node->left);
-
-                        tex_print (")");
-                    }
-                    else
-                    {
-                        tex_print_compressed_node (node->left, tex_file, original_node->left);
-                    }
-
-                    tex_print ("^{");
-
-                    tex_print_compressed_node (node->right, tex_file, original_node->right);
-
-                    tex_print ("}");
-
-                    break;
-                }
-                case OP_SIN:
-                {
-                    tex_print ("\\sin(");
-
-                    tex_print_compressed_node (node->right, tex_file, original_node->right);
-
-                    tex_print (")");
-
-                    break;
-                }
-                case OP_COS:
-                {
-                    tex_print ("\\cos(");
-
-                    tex_print_compressed_node (node->right, tex_file, original_node->right);
-
-                    tex_print (")");
-
-                    break;
-                }
-                case OP_LN:
-                {
-                    tex_print ("\\ln(");
-
-                    tex_print_compressed_node (node->right, tex_file, original_node->right);
-
-                    tex_print (")");
-
-                    break;
-                }
                 default:
                 {
                     printf ("Error: wrong node op type in %s", __PRETTY_FUNCTION__);
                     break;
                 }
+
+                #undef DEF_OP
             }
             break;
         }
@@ -439,136 +339,6 @@ void tex_print_node (const Node *node, FILE *tex_file)
                 }
 
                 #include "../../operations.h"
-/*
-                case OP_ADD:
-                {
-                    tex_print_node (node->left, tex_file);
-
-                    tex_print ("+");
-
-                    tex_print_node (node->right, tex_file);
-
-                    break;
-                }
-                case OP_SUB:
-                {
-                    tex_print_node (node->left, tex_file);
-
-                    tex_print ("-");
-
-                    if (node->right->type == TYPE_OP)
-                    {
-                        tex_print ("(");
-                        tex_print_node (node->right, tex_file);
-                        tex_print (")");
-                    }
-                    else
-                    {
-                        tex_print_node (node->right, tex_file);
-                    }
-
-                    break;
-                }
-                case OP_MUL:
-                {
-                    if ((node->left->type == TYPE_OP) &&
-                        (node->left->value.op_val == OP_ADD ||
-                         node->left->value.op_val == OP_SUB))
-                    {
-                        tex_print ("(");
-                        tex_print_node (node->left, tex_file);
-                        tex_print (")");
-                    }
-                    else
-                    {
-                        tex_print_node (node->left, tex_file);
-                    }
-
-                    tex_print ("\\times");
-
-                    if ((node->right->type == TYPE_OP) &&
-                        (node->right->value.op_val == OP_ADD ||
-                         node->right->value.op_val == OP_SUB))
-                    {
-                        tex_print ("(");
-                        tex_print_node (node->right, tex_file);
-                        tex_print (")");
-                    }
-                    else
-                    {
-                        tex_print_node (node->right, tex_file);
-                    }
-
-                    break;
-                }
-                case OP_DIV:
-                {
-                    tex_print ("\\frac{");
-
-                    tex_print_node (node->left, tex_file);
-
-                    tex_print ("}{");
-
-                    tex_print_node (node->right, tex_file);
-
-                    tex_print ("}");
-
-                    break;
-                }
-                case OP_DEG:
-                {
-                    if (node->left->type == TYPE_OP)
-                    {
-                        tex_print ("(");
-
-                        tex_print_node (node->left, tex_file);
-
-                        tex_print (")");
-                    }
-                    else
-                    {
-                        tex_print_node (node->left, tex_file);
-                    }
-
-                    tex_print ("^{");
-
-                    tex_print_node (node->right, tex_file);
-
-                    tex_print ("}");
-
-                    break;
-                }
-                case OP_SIN:
-                {
-                    tex_print ("\\sin(");
-
-                    tex_print_node (node->right, tex_file);
-
-                    tex_print (")");
-
-                    break;
-                }
-                case OP_COS:
-                {
-                    tex_print ("\\cos(");
-
-                    tex_print_node (node->right, tex_file);
-
-                    tex_print (")");
-
-                    break;
-                }
-                case OP_LN:
-                {
-                    tex_print ("\\ln(");
-
-                    tex_print_node (node->right, tex_file);
-
-                    tex_print (")");
-
-                    break;
-                }*/
-
 
                 default:
                 {
