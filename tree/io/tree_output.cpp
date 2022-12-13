@@ -14,6 +14,7 @@
 #include "../tree_convolution.h"
 #include "../diff/func_value.h"
 #include "../diff/decomposition.h"
+#include "../tree_compression.h"
 
 static unsigned int err = 0;
 
@@ -102,7 +103,266 @@ void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_fi
     tex_print ("\\]\\newline\n");
 }
 
+void tree_tex_print_compressed (const Node *left_part, const Node *right_part, const Node *original_right_part,
+                                FILE *tex_file, bool is_diff, int diff_order)
+{
+    assert (tex_file);
+
+    tex_print ("\\[");
+
+    if (is_diff && left_part)
+    {
+        tex_print ("(");
+
+        tex_print_node (left_part, tex_file);
+
+        if (diff_order == 1)
+        {
+            tex_print (")' = ");
+        }
+        else
+        {
+            tex_print (")^{(%d)} = ", diff_order);
+        }
+    }
+    else if (left_part)
+    {
+        tex_print_node (left_part, tex_file);
+        tex_print (" = ");
+    }
+
+    tex_print_compressed_node (right_part, tex_file, original_right_part);
+
+}
+
 // cpu idea
+void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *original_node)
+{
+    static const char *char_labels[20] = {};
+    static const Node *node_labels[20] = {};
+    static int index = 0;
+
+    static int is_not_start = 0;
+    is_not_start++;
+    assert (tex_file);
+
+    if (node == nullptr)
+    {
+        return;
+    }
+    switch (node->type)
+    {
+        case TYPE_DEFAULT:
+        {
+            break;
+        }
+        case TYPE_NUM:
+        {
+            double val = node->value.dbl_val;
+
+            if (val - (int)val == 0)
+            {
+                tex_print (" %.0lf ", val);
+            }
+            else
+            {
+                tex_print (" %.2lf ", val);
+            }
+
+            break;
+        }
+        case TYPE_VAR:
+        {
+            tex_print (" %s ", node->value.var);
+
+            if (*(node->value.var) == 'A')
+            {
+                char_labels[index] = node->value.var;
+                node_labels[index++] = original_node;
+            }
+
+            break;
+        }
+        case TYPE_OP:
+        {
+            switch (node->value.op_val)
+            {
+                case OP_DEFAULT:
+                    break;
+                case OP_ADD:
+                {
+                    tex_print_compressed_node (node->left, tex_file, original_node->left);
+
+                    tex_print ("+");
+
+                    tex_print_compressed_node (node->right, tex_file, original_node->right);
+
+                    break;
+                }
+                case OP_SUB:
+                {
+                    tex_print_compressed_node (node->left, tex_file, original_node->left);
+
+                    tex_print ("-");
+
+                    if (node->right->type == TYPE_OP)
+                    {
+                        tex_print ("(");
+                        tex_print_compressed_node (node->right, tex_file, original_node->right);
+                        tex_print (")");
+                    }
+                    else
+                    {
+                        tex_print_compressed_node (node->right, tex_file, original_node->right);
+                    }
+
+                    break;
+                }
+                case OP_MUL:
+                {
+                    if (node->left->type == TYPE_OP)
+                    {
+                        if (node->left->value.op_val == OP_ADD || node->left->value.op_val == OP_SUB)
+                        {
+                            tex_print ("(");
+                            tex_print_compressed_node (node->left, tex_file, original_node->left);
+                            tex_print (")");
+                        }
+                        else
+                        {
+                            tex_print_compressed_node (node->left, tex_file, original_node->left);
+                        }
+                    }
+                    else
+                    {
+                        tex_print_compressed_node (node->left, tex_file, original_node->left);
+                    }
+
+                    tex_print ("\\times");
+
+                    if (node->right->type == TYPE_OP)
+                    {
+                        if (node->right->value.op_val == OP_ADD || node->right->value.op_val == OP_SUB)
+                        {
+                            tex_print ("(");
+                            tex_print_compressed_node (node->right, tex_file, original_node->right);
+                            tex_print (")");
+                        }
+                        else
+                        {
+                            tex_print_compressed_node (node->right, tex_file, original_node->right);
+                        }
+                    }
+                    else
+                    {
+                        tex_print_compressed_node (node->right, tex_file, original_node->right);
+                    }
+
+                    break;
+                }
+                case OP_DIV:
+                {
+                    tex_print ("\\frac{");
+
+                    tex_print_compressed_node (node->left, tex_file, original_node->left);
+
+                    tex_print ("}{");
+
+                    tex_print_compressed_node (node->right, tex_file, original_node->right);
+
+                    tex_print ("}");
+
+                    break;
+                }
+                case OP_DEG:
+                {
+                    if (node->left->type == TYPE_OP)
+                    {
+                        tex_print ("(");
+
+                        tex_print_compressed_node (node->left, tex_file, original_node->left);
+
+                        tex_print (")");
+                    }
+                    else
+                    {
+                        tex_print_compressed_node (node->left, tex_file, original_node->left);
+                    }
+
+                    tex_print ("^{");
+
+                    tex_print_compressed_node (node->right, tex_file, original_node->right);
+
+                    tex_print ("}");
+
+                    break;
+                }
+                case OP_SIN:
+                {
+                    tex_print ("\\sin(");
+
+                    tex_print_compressed_node (node->right, tex_file, original_node->right);
+
+                    tex_print (")");
+
+                    break;
+                }
+                case OP_COS:
+                {
+                    tex_print ("\\cos(");
+
+                    tex_print_compressed_node (node->right, tex_file, original_node->right);
+
+                    tex_print (")");
+
+                    break;
+                }
+                case OP_LN:
+                {
+                    tex_print ("\\ln(");
+
+                    tex_print_compressed_node (node->right, tex_file, original_node->right);
+
+                    tex_print (")");
+
+                    break;
+                }
+                default:
+                {
+                    printf ("Error: wrong node op type in %s", __PRETTY_FUNCTION__);
+                    break;
+                }
+            }
+            break;
+        }
+        default:
+        {
+            printf ("Error: wrong node type in %s", __PRETTY_FUNCTION__);
+            break;
+        }
+    }
+
+    is_not_start--;
+    if (is_not_start == 0)
+    {
+        tex_print ("\\]\\newline\n");
+        tex_print ("где:");
+
+        for (int i = 0; i < index; i++)
+        {
+            if (char_labels[i] && node_labels[i])
+            {
+                tex_print ("\\[%s = ", char_labels[i]);
+                tex_print_node (node_labels[i], tex_file);
+                tex_print ("\\]\\newline\n");
+
+                char_labels[i] =  nullptr;
+                node_labels[i] = nullptr;
+            }
+        }
+    }
+}
+
 void tex_print_node (const Node *node, FILE *tex_file)
 {
     assert (tex_file);
@@ -143,6 +403,43 @@ void tex_print_node (const Node *node, FILE *tex_file)
             {
                 case OP_DEFAULT:
                     break;
+
+                #define DEF_OP(name, num, sign, sign_len, plot_sign, tex_pre_sign, tex_left_cond, tex_mid_sign, tex_right_cond, tex_end_sign)   \
+                case OP_##name:                                                                                                                 \
+                {                                                                                                                               \
+                    tex_print (tex_pre_sign);                                                                                                   \
+                                                                                                                                                \
+                    if (tex_left_cond)                                                                                                          \
+                    {                                                                                                                           \
+                        tex_print ("(");                                                                                                        \
+                        tex_print_node (node->left, tex_file);                                                                                  \
+                        tex_print (")");                                                                                                        \
+                    }                                                                                                                           \
+                    else                                                                                                                        \
+                    {                                                                                                                           \
+                        tex_print_node (node->left, tex_file);                                                                                  \
+                    }                                                                                                                           \
+                                                                                                                                                \
+                    tex_print (tex_mid_sign);                                                                                                   \
+                                                                                                                                                \
+                    if (tex_right_cond)                                                                                                         \
+                    {                                                                                                                           \
+                        tex_print ("(");                                                                                                        \
+                        tex_print_node (node->right, tex_file);                                                                                 \
+                        tex_print (")");                                                                                                        \
+                    }                                                                                                                           \
+                    else                                                                                                                        \
+                    {                                                                                                                           \
+                        tex_print_node (node->right, tex_file);                                                                                 \
+                    }                                                                                                                           \
+                                                                                                                                                \
+                    tex_print (tex_end_sign);                                                                                                   \
+                                                                                                                                                \
+                    break;                                                                                                                      \
+                }
+
+                #include "../../operations.h"
+/*
                 case OP_ADD:
                 {
                     tex_print_node (node->left, tex_file);
@@ -174,18 +471,13 @@ void tex_print_node (const Node *node, FILE *tex_file)
                 }
                 case OP_MUL:
                 {
-                    if (node->left->type == TYPE_OP)
+                    if ((node->left->type == TYPE_OP) &&
+                        (node->left->value.op_val == OP_ADD ||
+                         node->left->value.op_val == OP_SUB))
                     {
-                        if (node->left->value.op_val == OP_ADD || node->left->value.op_val == OP_SUB)
-                        {
-                            tex_print ("(");
-                            tex_print_node (node->left, tex_file);
-                            tex_print (")");
-                        }
-                        else
-                        {
-                            tex_print_node (node->left, tex_file);
-                        }
+                        tex_print ("(");
+                        tex_print_node (node->left, tex_file);
+                        tex_print (")");
                     }
                     else
                     {
@@ -194,18 +486,13 @@ void tex_print_node (const Node *node, FILE *tex_file)
 
                     tex_print ("\\times");
 
-                    if (node->right->type == TYPE_OP)
+                    if ((node->right->type == TYPE_OP) &&
+                        (node->right->value.op_val == OP_ADD ||
+                         node->right->value.op_val == OP_SUB))
                     {
-                        if (node->right->value.op_val == OP_ADD || node->right->value.op_val == OP_SUB)
-                        {
-                            tex_print ("(");
-                            tex_print_node (node->right, tex_file);
-                            tex_print (")");
-                        }
-                        else
-                        {
-                            tex_print_node (node->right, tex_file);
-                        }
+                        tex_print ("(");
+                        tex_print_node (node->right, tex_file);
+                        tex_print (")");
                     }
                     else
                     {
@@ -271,11 +558,25 @@ void tex_print_node (const Node *node, FILE *tex_file)
 
                     break;
                 }
+                case OP_LN:
+                {
+                    tex_print ("\\ln(");
+
+                    tex_print_node (node->right, tex_file);
+
+                    tex_print (")");
+
+                    break;
+                }*/
+
+
                 default:
                 {
                     printf ("Error: wrong node op type in %s", __PRETTY_FUNCTION__);
                     break;
                 }
+
+                #undef DEF_OP
             }
             break;
         }
@@ -340,12 +641,9 @@ void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const
     free (graphic_func);
 }
 
-
-// #defines ??? CPU idea
 bool func_for_gnuplot (Node *func_node, char *graphic_func)
 {
     static int shift = 0;
-    int temp = 0;
 
     if (func_node == nullptr)
     {
@@ -402,13 +700,13 @@ bool func_for_gnuplot (Node *func_node, char *graphic_func)
                     break;
                 }
 
-                #define DEF_OP(name, num, sign, sign_len)       \
-                case OP_##name:                                 \
-                {                                               \
-                    sprintf (graphic_func + shift, #sign);      \
-                    shift += sign_len;                          \
-                                                                \
-                    break;                                      \
+                #define DEF_OP(name, num, sign, sign_len, plot_sign,...)    \
+                case OP_##name:                                             \
+                {                                                           \
+                    sprintf (graphic_func + shift, #plot_sign);             \
+                    shift += sign_len;                                      \
+                                                                            \
+                    break;                                                  \
                 }
 
                 #include "../../operations.h"
@@ -459,14 +757,35 @@ void print_function (const char *func_name, Tree *func, FILE *tex_file)
 {
     tree_check (func, &err);
 
+    Tree compress_tree = {};
+
+    if (tree_compression (func, &compress_tree) == nullptr)
+    {
+        compress_tree.root = func->root;
+    }
+
     tex_print ("\\[%s(x) = ", func_name);
-    tex_print_node (func->root, tex_file);
+    tex_print_node (compress_tree.root, tex_file);
+    //tex_print_node (func->root, tex_file);
     tex_print ("\\]\\newline\n");
+
+    if (compress_tree.root != func->root)
+    {
+        tree_dtor (&compress_tree);
+    }
 }
 
 void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, int diff_order)
 {
     tree_check (diff_func, &err);
+
+    Tree compress_tree = {};
+
+    if (tree_compression (diff_func, &compress_tree) == nullptr)
+    {
+        compress_tree.root = diff_func->root;
+    }
+    tree_check (&compress_tree, &err);
 
     if (diff_order == 1)
     {
@@ -477,9 +796,15 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
         tex_print ("\\[%s^{(%d)}(x) = ", func_name, diff_order);
     }
 
-    tex_print_node (diff_func->root, tex_file);
+    tex_print_node (compress_tree.root, tex_file);
+    //tex_print_node (diff_func->root, tex_file);
 
     tex_print ("\\]\\newline\n");
+
+    if (compress_tree.root != diff_func->root)
+    {
+        tree_dtor (&compress_tree);
+    }
 }
 
 void print_point_value (const char *func_name, double point, double point_value, FILE *tex_file)
@@ -501,13 +826,25 @@ void print_decompose_tree (const char *func_name, Tree *decompose_tree, double d
 {
     tree_check (decompose_tree, &err);
 
+    Tree compress_tree = {};
+
+    if (tree_compression (decompose_tree, &compress_tree) == nullptr)
+    {
+        compress_tree.root = decompose_tree->root;
+    }
     tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке а = %.2lf\\newline\n", decompose_order, decompose_point);
 
     tex_print ("\\[f(a) = ");
 
-    tex_print_node (decompose_tree->root, tex_file);
+    tex_print_node (compress_tree.root, tex_file);
+    //tex_print_node (decompose_tree->root, tex_file);
 
     tex_print ("\\]\\newlinne\n");
+
+    if (compress_tree.root != decompose_tree->root)
+    {
+        tree_dtor (&compress_tree);
+    }
 }
 
 void print_tex_ending (FILE *tex_file)

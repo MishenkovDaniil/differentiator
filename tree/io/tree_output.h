@@ -36,4 +36,10 @@ void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const
                         Tree *func, FILE *tex_file);
 bool func_for_gnuplot (Node *func_node, char *graphic_func);
 
+
+
+void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *original_node);
+void tree_tex_print_compressed (const Node *left_part, const Node *right_part, const Node *original_right_part,
+                                FILE *tex_file, bool is_diff = false, int diff_order = 1);
+
 #endif /* TREE_OUTPUT_H */
