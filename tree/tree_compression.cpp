@@ -21,7 +21,12 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
     size_t max_len = 40;
     bool is_compressed = false;
 
-    if (!(compress_node))
+
+    if (!(compress_node || src_tree->root))
+    {
+        return nullptr;
+    }
+    else if (!(compress_node))
     {
         compress_node = src_tree->root;
     }
@@ -31,68 +36,41 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
         return nullptr;
     }
 
-    size_t len_1 = 0;
-    size_t len_2 = 0;
-
-    len_1 = node_len (compress_node->left);
-    len_2 = node_len (compress_node->right);
+    size_t len_1 = node_len (compress_node->left);
+    size_t len_2 = node_len (compress_node->right);
 
     if (compress_node->value.op_val == OP_DIV && (len_1 > 2*max_len || len_2 > 2*max_len))
     {
         max_len *= 2;
     }
 
-    printf ("\nlen1 = [%d], len2 = %d\n", len_1, len_2);
-
     Node *dst_compress_node = nullptr;
 
-    if ((len_1 > max_len || len_2 > max_len) && is_compressed == false)
+    if (len_1 > max_len || len_2 > max_len)
     {
-        dst_tree->root = cpy_node (src_tree->root);
+        if (is_compressed == false)
+        {
+            dst_tree->root = cpy_node (src_tree->root);
+        }
+
         dst_compress_node = find_node (src_tree, dst_tree, compress_node);
+
         assert (dst_compress_node);
     }
-    else if (len_1 > max_len || len_2 > max_len)
+    else
     {
-        dst_compress_node = find_node (src_tree, dst_tree, compress_node);
-        assert (dst_compress_node);
+        return nullptr;
     }
 
-    if ((len_1 > max_len) && (len_1 < 2*max_len))
+    if ((node_compression (src_tree, dst_tree, compress_node->left, dst_compress_node->left, len_1, &index, max_len)) == true)
     {
-        assert (dst_compress_node);
-
-        char var[10] = "";
-
-        sprintf (var, "A_{%d}", index++);
-
-        dst_compress_node->left->type = TYPE_VAR;
-        dst_compress_node->left->value.var = (char *)calloc (6, sizeof (char));
-        strcpy (dst_compress_node->left->value.var, var);
-
+        index++;
         is_compressed = true;
     }
-    else if (len_1 > 2*max_len)
+    if ((node_compression (src_tree, dst_tree, compress_node->right, dst_compress_node->right, len_2, &index, max_len)) == true)
     {
-        tree_compression (src_tree, dst_tree, compress_node->left);
-    }
-
-    if ((len_2 > max_len) && (len_2 < 2*max_len))
-    {
-        assert (dst_compress_node);
-
-        char var[10] = "";
-        sprintf (var, "A_{%d}", index++);
-
-        dst_compress_node->right->type = TYPE_VAR;
-        dst_compress_node->right->value.var = (char *)calloc (6, sizeof (char));
-        strcpy (dst_compress_node->right->value.var, var);
-
+        index++;
         is_compressed = true;
-    }
-    else if (len_2 > 2*max_len)
-    {
-        tree_compression (src_tree, dst_tree, compress_node->right);
     }
 
     if (!(is_compressed))
@@ -100,9 +78,39 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
         return nullptr;
     }
 
-    fprintf (stderr, "line %d\n", __LINE__);
-
     return dst_tree;
+}
+
+bool node_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node, Node *dst_compress_node, size_t len, int *index, size_t max_len)
+{
+    assert (src_tree);
+    assert (dst_tree);
+    assert (compress_node);
+    assert (dst_compress_node);
+    assert (index);
+
+    const int MAX_VAR_SIZE = 10;
+
+    if ((len > max_len) && (len < 2*max_len))
+    {
+        char var[MAX_VAR_SIZE] = "";
+        sprintf (var, "A_{%d}", *index);
+
+        dst_compress_node->type = TYPE_VAR;
+        dst_compress_node->value.var = (char *)calloc (MAX_VAR_SIZE, sizeof (char));
+        strcpy (dst_compress_node->value.var, var);
+
+        return true;
+    }
+    else if (len > 2*max_len)
+    {
+        if (tree_compression (src_tree, dst_tree, compress_node))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
@@ -114,11 +122,14 @@ Node *find_node (Tree *src_tree, Tree *dst_tree, Node *src_node)
 
     Stack stk = {};
     stack_init (&stk, 10);
+
     Node *dst_node = dst_tree->root;
 
     find_node_path (&stk, src_tree->root, src_node);
 
-    while (stk.size-- > 0)
+    int stk_size = stk.size;
+
+    while (stk_size--)
     {
         if ((stack_pop (&stk)) == 0)
         {
@@ -128,6 +139,7 @@ Node *find_node (Tree *src_tree, Tree *dst_tree, Node *src_node)
         {
             dst_node = dst_node->right;
         }
+
         assert (dst_node);
     }
 
@@ -245,10 +257,4 @@ size_t get_num_len (double num)
     }
 
     return len + 3;
-}
-
-
-unsigned long node_hash (Node *node)
-{
-    return 0;
 }
