@@ -9,6 +9,7 @@
 #include "tree_diff.h"
 #include "../io/tree_output.h"
 #include "../tree_convolution.h"
+#include "../tree_compression.h"
 
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
@@ -24,6 +25,7 @@
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
 #define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", nullptr, node)
 #define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", nullptr, node)
+#define LN(node)                        tree_create_node (TYPE_OP,  "OP_LN", nullptr, node)
 
 static const int PHRASES_NUMBER = 8;
 static const char *phrases[PHRASES_NUMBER] = {"Очевидно, что", "В СССР следующий результат было стыдно записывать",
@@ -126,7 +128,22 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
                 }
                 case OP_DEG:
                 {
-                    result = MUL (MUL (DEG(cL, SUB (cR, create_num (1))), dL ), cR);
+                    if (Left->type == TYPE_NUM && Right->type == TYPE_NUM)
+                    {
+                        result = 0;
+                    }
+                    else if (Left->type == TYPE_NUM)
+                    {
+                        result = MUL (MUL (LN (cL), DEG (cL, cR)), dR);
+                    }
+                    else if (Right->type == TYPE_NUM)
+                    {
+                        result = MUL (MUL (DEG(cL, SUB (cR, create_num (1))), dL ), cR);
+                    }
+                    else
+                    {
+                        result = ADD (MUL (MUL(cR, dL), DEG (cL, SUB(cR, create_num(1)))), MUL (MUL (DEG (cL, cR), LN(cL)), dR));
+                    }
                     break;
                 }
                 case OP_SIN:
@@ -137,6 +154,11 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
                 case OP_COS:
                 {
                     result = MUL (MUL(SIN (cR), create_num(-1)), dR);
+                    break;
+                }
+                case OP_LN:
+                {
+                    result = MUL (DIV (create_num (1), cR), dR);
                     break;
                 }
                 default:
@@ -157,7 +179,23 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
     if (is_to_print)
     {
         fprintf (tex_file, "%s\\newline\n", phrases[rand() % PHRASES_NUMBER]);
-        tree_tex_print (node, result, tex_file, true);
+        tree_convolution (result);
+
+        Tree tree_2 = {};
+        tree_2.root = result;
+        Tree dst_tree_2 = {};
+        tree_2.root = result;
+
+        if (tree_compression (&tree_2, &dst_tree_2) == nullptr)
+        {
+            tree_tex_print (node, result, tex_file, true);
+        }
+        else
+        {
+            tree_tex_print_compressed (node, dst_tree_2.root, result, tex_file, true);
+
+            tree_dtor (&dst_tree_2);
+        }
     }
 
     return result;
@@ -166,9 +204,9 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
 Node *cpy_node (const Node *node)
 {
     Node *copy = tree_create_node (TYPE_DEFAULT, nullptr);
-    //Node *copy = (Node *)calloc (1, sizeof (Node));
-    //memcpy (copy, node, sizeof (Node));
+
     copy->type = node->type;
+
     switch (copy->type)
     {
         case TYPE_DEFAULT:
