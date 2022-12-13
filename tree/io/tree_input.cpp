@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <math.h>
 
 #define create_num(num)                 tree_create_node (TYPE_NUM, #num)
 #define Left                            node->left
@@ -18,6 +19,7 @@
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
 #define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", nullptr, node)
 #define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", nullptr, node)
+#define LN(node)                       tree_create_node (TYPE_OP, "OP_LN", nullptr, node)
 
 #include "../tree.h"
 #include "tree_input.h"
@@ -80,7 +82,7 @@ int get_file_size (const char *file_name)               ///repo onegin ../io/io.
 Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name)
 {
     int expr_size = get_file_size (file_name);
-    char *expr = (char *)calloc (expr_size, sizeof (char));
+    char *expr = (char *)calloc (expr_size + 1, sizeof (char));
 
     fread (expr, sizeof (char), expr_size, input_file);
 
@@ -90,6 +92,8 @@ Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name)
     {
         debug_print ("Error: failed to read from input file");
     }
+
+    free (expr);
 
     return tree->root;
 }
@@ -293,6 +297,12 @@ Node *GetNodeV (const char **expr)
             left_node = GetNodeP (expr);
 
             result = COS (left_node);
+        }
+        else if (strcasecmp (var, "ln") == 0)
+        {
+            left_node = GetNodeP (expr);
+
+            result = LN (left_node);
         }
         else
         {
