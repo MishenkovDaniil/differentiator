@@ -135,6 +135,7 @@ void tree_tex_print_compressed (const Node *left_part, const Node *right_part, c
 
 }
 
+// cpu idea
 void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *original_node)
 {
     static const char *char_labels[20] = {};
@@ -254,7 +255,7 @@ void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *or
             {
                 tex_print ("\\[%s = ", char_labels[i]);
                 tex_print_node (node_labels[i], tex_file);
-                tex_print ("\\]\\newline\n");
+                tex_print ("\\]\n");
 
                 char_labels[i] =  nullptr;
                 node_labels[i] = nullptr;
@@ -527,20 +528,19 @@ void print_function (const char *func_name, Tree *func, FILE *tex_file)
 {
     tree_check (func, &err);
 
+    tex_print ("\\[%s(x) = ", func_name);
+
     Tree compress_tree = {};
 
     if (tree_compression (func, &compress_tree) == nullptr)
     {
-        compress_tree.root = func->root;
+        tex_print_node (func->root, tex_file);
+        tex_print ("\\]\\newline\n");
     }
-
-    tex_print ("\\[%s(x) = ", func_name);
-    tex_print_node (compress_tree.root, tex_file);
-    //tex_print_node (func->root, tex_file);
-    tex_print ("\\]\\newline\n");
-
-    if (compress_tree.root != func->root)
+    else
     {
+        tree_check (&compress_tree, &err);
+        tex_print_compressed_node (compress_tree.root, tex_file, func->root);
         tree_dtor (&compress_tree);
     }
 }
@@ -549,13 +549,6 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
 {
     tree_check (diff_func, &err);
 
-    Tree compress_tree = {};
-
-    if (tree_compression (diff_func, &compress_tree) == nullptr)
-    {
-        compress_tree.root = diff_func->root;
-    }
-    tree_check (&compress_tree, &err);
 
     if (diff_order == 1)
     {
@@ -566,13 +559,17 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
         tex_print ("\\[%s^{(%d)}(x) = ", func_name, diff_order);
     }
 
-    tex_print_node (compress_tree.root, tex_file);
-    //tex_print_node (diff_func->root, tex_file);
+    Tree compress_tree = {};
 
-    tex_print ("\\]\\newline\n");
-
-    if (compress_tree.root != diff_func->root)
+    if (tree_compression (diff_func, &compress_tree) == nullptr)
     {
+        tex_print_node (diff_func->root, tex_file);
+        tex_print ("\\]\\newline\n");
+    }
+    else
+    {
+        tree_check (&compress_tree, &err);
+        tex_print_compressed_node (compress_tree.root, tex_file, diff_func->root);
         tree_dtor (&compress_tree);
     }
 }
@@ -596,23 +593,20 @@ void print_decompose_tree (const char *func_name, Tree *decompose_tree, double d
 {
     tree_check (decompose_tree, &err);
 
-    Tree compress_tree = {};
-
-    if (tree_compression (decompose_tree, &compress_tree) == nullptr)
-    {
-        compress_tree.root = decompose_tree->root;
-    }
     tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке а = %.2lf\\newline\n", decompose_order, decompose_point);
 
     tex_print ("\\[f(a) = ");
 
-    tex_print_node (compress_tree.root, tex_file);
-    //tex_print_node (decompose_tree->root, tex_file);
+    Tree compress_tree = {};
 
-    tex_print ("\\]\\newlinne\n");
-
-    if (compress_tree.root != decompose_tree->root)
+    if (tree_compression (decompose_tree, &compress_tree) == nullptr)
     {
+        tex_print_node (decompose_tree->root, tex_file);
+        tex_print ("\\]\\newline\n");
+    }
+    else
+    {
+        tex_print_compressed_node (compress_tree.root, tex_file, decompose_tree->root);
         tree_dtor (&compress_tree);
     }
 }
