@@ -26,38 +26,114 @@
 #include "tree_output.h"
 #include "../../config.h"
 
-bool get_config (Config *config)
+bool get_config (Tree *expr, Config *config, FILE *input_file, const char *input_file_name)
 {
-    printf ("Enter point a to find f(a):");
+    int config_size = get_file_size (input_file_name);
 
-    if (scanf (" %lf", &config->point) == 0)
+    int num = 0;
+
+    char *file_config = (char *)calloc (config_size + 1, sizeof (char));
+    char *file_config_start = file_config;
+
+    fread (file_config, sizeof (char), config_size, input_file);
+
+    while (*file_config_start != '\0')
     {
-        fprintf (stderr, "Error: bad input data (func point).\n");
-        return false;
+        char cmd[20] = "";
+        if (!(sscanf (file_config_start, " %[^:] :%n", cmd, &num)))
+        {
+            debug_print ("Syntax error: reading of command failed, stopped at %s.\n", file_config_start);
+            return false;
+        }
+
+        file_config_start += num;
+
+        if (isspace (*cmd) || strlen (cmd) == 0)
+        {
+            break;
+        }
+        else if (strcasecmp (cmd, "func") == 0)
+        {
+            config->expr = (char *)calloc (config_size + 1, sizeof (char));
+
+            if (!(sscanf (file_config_start, " %[^;];%n", config->expr, &num)))
+            {
+                debug_print ("Syntax error: reading of function failed, stopped at %s.\n", file_config_start);
+                return false;
+            }
+
+            file_config_start += num;
+
+            tree_fill (expr, config);
+        }
+        else if (strcasecmp (cmd, "point") == 0)
+        {
+            char *point = (char *)calloc (config_size, sizeof (char));
+
+            if (!(sscanf (file_config_start, " %lf ;%n", point, &num)))
+            {
+                debug_print ("Syntax error: reading of point failed, stopped at %s.\n", file_config_start);
+                return false;
+            }
+
+            config->point = atof (file_config_start);
+            file_config_start += num;
+
+            free (point);
+        }
+        else if (strcasecmp (cmd, "diff") == 0)
+        {
+            char *diff_order = (char *)calloc (config_size, sizeof (char));
+
+            if (!(sscanf (file_config_start, " %d ;%n", diff_order, &num)))
+            {
+                debug_print ("Syntax error: reading of diff order failed, stopped at %s.\n", file_config);
+                return false;
+            }
+
+            config->diff_order = atoi (file_config_start);
+            file_config_start += num;
+
+            free (diff_order);
+        }
+        else if (strcasecmp (cmd, "taylor") == 0)
+        {
+            char *decompose_order = (char *)calloc (config_size, sizeof (char));
+            char *decompose_point = (char *)calloc (config_size, sizeof (char));
+
+            if (!(sscanf (file_config_start, " %d%n", decompose_order, &num)))
+            {
+                debug_print ("Syntax error: reading of decompose order failed, stopped at %s.\n", file_config);
+                return false;
+            }
+            else
+            {
+                config->decompose_order = atoi (file_config_start);
+                file_config_start += num;
+            }
+
+            if (!(sscanf (file_config_start, " %lf ;%n", decompose_point, &num)))
+            {
+                debug_print ("Syntax error: reading of decompose point failed, stopped at %s.\n", file_config_start);
+                return false;
+            }
+            else
+            {
+                config->decompose_point = atof (file_config_start);
+                file_config_start += num;
+            }
+
+            free (decompose_order);
+            free (decompose_point);
+        }
+        else
+        {
+            debug_print ("Syntax error: unknown command %s.\n", cmd);
+            return false;
+        }
     }
 
-    printf ("Enter diff order to find: ");
-
-    if (scanf (" %d", &config->diff_order) == 0)
-    {
-        fprintf (stderr, "Error: bad input data (diff order).\n");
-        return false;
-    }
-
-    printf ("Enter decomposition order and point of decomposition: ");
-
-    if (scanf (" %d %lf", &config->decompose_order, &config->decompose_point) < 2)
-    {
-        fprintf (stderr, "Error: bad input data (config for decompose func).\n");
-        return false;
-    }
-
-    if (config->diff_order <= 0 || config->decompose_order <= 0)
-    {
-        printf ("Error: diff order must be above zero");
-        return false;
-    }
-
+    free (file_config);
     return true;
 }
 
@@ -79,21 +155,16 @@ int get_file_size (const char *file_name)               ///repo onegin ../io/io.
     return buf.st_size;
 }
 
-Node *tree_fill (Tree *tree, FILE *input_file, const char *file_name)
+Node *tree_fill (Tree *tree, Config *config)
 {
-    int expr_size = get_file_size (file_name);
-    char *expr = (char *)calloc (expr_size + 1, sizeof (char));
-
-    fread (expr, sizeof (char), expr_size, input_file);
-
-    GetNodeG (tree, expr);
+    GetNodeG (tree, config->expr);
 
     if (!(tree->root))
     {
         debug_print ("Error: failed to read from input file");
     }
 
-    free (expr);
+    free (config->expr);
 
     return tree->root;
 }
