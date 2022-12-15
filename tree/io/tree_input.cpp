@@ -19,7 +19,7 @@
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
 #define SIN(node)                       tree_create_node (TYPE_OP, "OP_SIN", nullptr, node)
 #define COS(node)                       tree_create_node (TYPE_OP, "OP_COS", nullptr, node)
-#define LN(node)                       tree_create_node (TYPE_OP, "OP_LN", nullptr, node)
+#define LN(node)                        tree_create_node (TYPE_OP, "OP_LN", nullptr, node)
 
 #include "../tree.h"
 #include "tree_input.h"
@@ -125,6 +125,47 @@ bool get_config (Tree *expr, Config *config, FILE *input_file, const char *input
 
             free (decompose_order);
             free (decompose_point);
+        }
+        else if (strcasecmp (cmd, "tangent") == 0)
+        {
+            char *tangent_point = (char *)calloc (config_size, sizeof (char));
+
+            if (!(sscanf (file_config_start, " %lf ;%n", tangent_point, &num)))
+            {
+                debug_print ("Syntax error: reading of tangent point failed, stopped at %s.\n", file_config);
+                return false;
+            }
+            else
+            {
+                config->tangent_point = atof (file_config_start);
+                file_config_start += num;
+            }
+
+            free (tangent_point);
+        }
+        else if (strcasecmp (cmd, "Xrange") == 0)
+        {
+            if (!(sscanf (file_config_start, " [ %lf , %lf ] ;%n", &(config->x_min), &(config->x_max), &num)))
+            {
+                debug_print ("Syntax error: reading of tangent point failed, stopped at %s.\n", file_config);
+                return false;
+            }
+            else
+            {
+                file_config_start += num;
+            }
+        }
+        else if (strcasecmp (cmd, "Yrange") == 0)
+        {
+            if (!(sscanf (file_config_start, " [ %lf , %lf ] ;%n", &(config->y_min), &(config->y_max), &num)))
+            {
+                debug_print ("Syntax error: reading of tangent point failed, stopped at %s.\n", file_config);
+                return false;
+            }
+            else
+            {
+                file_config_start += num;
+            }
         }
         else
         {
