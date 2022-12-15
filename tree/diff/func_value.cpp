@@ -10,6 +10,9 @@ double func_point_value (Tree *tree, double point)
 {
     double result = node_point_value (tree->root, point);
 
+    unsigned int err = 0;
+    tree_check (tree, &err);
+
     if (result == NAN)
     {
         printf ("function is undefined in point %d.\n", point);
@@ -20,8 +23,15 @@ double func_point_value (Tree *tree, double point)
 
 double node_point_value (const Node *node, double point)
 {
+    assert (node);
+
     switch (node->type)
     {
+        case TYPE_DEFAULT:
+        {
+            debug_print ("Error: uninitialized node %p", node);
+            return NAN;
+        }
         case TYPE_NUM:
             return node->value.dbl_val;
         case TYPE_VAR:
@@ -40,9 +50,15 @@ double node_point_value (const Node *node, double point)
             #define DEG(lval, rval)     pow (lval, rval)
             #define SIN(rval)           sin (rval)
             #define COS(rval)           cos (rval)
+            #define LN(rval)            log (rval)
 
             switch (node->value.op_val)
             {
+                case OP_DEFAULT:
+                {
+                    debug_print ("Error: uninitialized operation, node %p", node);
+                    return NAN;
+                }
                 case OP_ADD:
                 {
                     return ADD (func_lval, func_rval);
@@ -58,14 +74,14 @@ double node_point_value (const Node *node, double point)
                 case OP_DIV:
                 {
                     double divider = func_rval;
-
+                    printf ("divider %lf\n", divider);
                     if (divider)
                     {
                         return DIV (func_lval, divider);
                     }
                     else
                     {
-                        printf ("Error: division by zero in this point, func value is undefined");
+                        printf ("Error: division by zero in this point, func value is undefined, node %p, tyep %d, %d.\n", node, node->type, node->value.op_val);
                         return NAN;
                     }
                 }
@@ -80,6 +96,10 @@ double node_point_value (const Node *node, double point)
                 case OP_COS:
                 {
                     return COS (func_rval);
+                }
+                case OP_LN:
+                {
+                    return LN (func_rval);
                 }
                 default:
                 {
@@ -98,6 +118,7 @@ double node_point_value (const Node *node, double point)
             #undef DEG
             #undef SIN
             #undef COS
+            #undef LN
         }
         default:
         {
