@@ -34,10 +34,9 @@ int main (int argc, const char **argv)
     const char *graphic_file_name = "graphic.txt";
     const char *func_name         = "f";
 
-    char *tex_to_pdf_cmd = (char *)calloc (strlen ("pdflatex ") + strlen (tex_file_name) + 1, sizeof (char));
-    strcat (tex_to_pdf_cmd, "pdflatex ");
-    strcat (tex_to_pdf_cmd, tex_file_name);
-    strcat (tex_to_pdf_cmd, " > /dev/null");
+    char *tex_to_pdf_cmd = (char *)calloc (strlen ("pdflatex  > /dev/null") + strlen (tex_file_name) + 1, sizeof (char));
+
+    sprintf (tex_to_pdf_cmd, "pdflatex %s > /dev/null", tex_file_name);
 
     FILE *input_file   = fopen (input_file_name, "r");
     FILE *tex_file     = fopen (tex_file_name, "wb");
@@ -64,14 +63,13 @@ int main (int argc, const char **argv)
     assert (graphic_file);
 
     Config config = {};
+    Tree expr = {};
+    Tree tangent_tree = {};
 
-    if (get_config (&config) == false)
+    if (get_config (&expr, &config, input_file, input_file_name) == false)
     {
         return 0;
     }
-
-    Tree expr = {};
-    tree_fill (&expr, input_file, input_file_name);
 
     print_tex_header (tex_file);
     new_section (tex_file);
@@ -83,6 +81,10 @@ int main (int argc, const char **argv)
     tex_find_diff (&expr, func_name, &config, tex_file);
 
     tex_decompose_func (&expr, func_name, graphic_file_name, input_file_name, &config, tex_file, graphic_file);
+
+    tex_tangent (&expr, &tangent_tree, graphic_file_name, input_file_name, &config, tex_file, graphic_file);
+
+    tex_print_graphic (graphic_file, graphic_file_name, input_file_name, &expr, &tangent_tree, tex_file, &config);
 
     print_tex_ending (tex_file);
 
@@ -96,6 +98,7 @@ int main (int argc, const char **argv)
     free (tex_to_pdf_cmd);
 
     tree_dtor (&expr);
+    tree_dtor (&tangent_tree);
 }
 
 #undef tex_print
