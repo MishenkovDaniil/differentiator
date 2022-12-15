@@ -5,15 +5,13 @@
 #include "tree_convolution.h"
 #include "io/tree_output.h"
 
-#define Left                            node->left
-#define Right                           node->right
+#define Left        node->left
+#define Right       node->right
+#define Op          node->value.op_val
 
 Node *tree_convolution (Node *node)
 {
     int is_to_free_children = false;
-
-    Node *left_node = node->left;
-    Node *right_node = node->right;
 
     if (node->type == TYPE_OP)
     {
@@ -29,10 +27,15 @@ Node *tree_convolution (Node *node)
         bool is_num_left = is_num (Left);
         bool is_num_right = is_num (Right);
 
-        if (is_num_left && is_num_right)
+        if (is_num_left && is_num_right || ((Op == OP_SIN || Op == OP_COS || Op == OP_LN) && is_num_right))
         {
-            double left_val = node->left->value.dbl_val;
             double right_val = node->right->value.dbl_val;
+            double left_val = 0;
+
+            if (is_num_left)
+            {
+                left_val = node->left->value.dbl_val;
+            }
 
             if (!(convolute_nums (node, left_val, right_val)))
             {
@@ -55,9 +58,6 @@ Node *tree_convolution (Node *node)
 Node *convolute_nums (Node *node, double left_val, double right_val)
 {
     node->type = TYPE_NUM;
-    Node *left_node = node->left;
-    Node *right_node = node->right;
-    //is_to_free_children = true;
 
     switch (node->value.op_val)
     {
@@ -97,6 +97,21 @@ Node *convolute_nums (Node *node, double left_val, double right_val)
             node->value.dbl_val = pow (left_val, right_val);
             break;
         }
+        case OP_SIN:
+        {
+            node->value.dbl_val = sin (right_val);
+            break;
+        }
+        case OP_COS:
+        {
+            node->value.dbl_val = cos (right_val);
+            break;
+        }
+        case OP_LN:
+        {
+            node->value.dbl_val = log (right_val);
+            break;
+        }
         default:
         {
             debug_print ("Error: wrong operation type, node %p, op_type %d", node, node->value.op_val);
@@ -104,11 +119,10 @@ Node *convolute_nums (Node *node, double left_val, double right_val)
         }
     }
 
-    tree_free (left_node);
-    tree_free (right_node);
+    tree_free (Left);
+    tree_free (Right);
 
-    node->left = nullptr;
-    node->right = nullptr;
+    Left = Right = nullptr;
 
     return node;
 }
@@ -117,27 +131,11 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
 {
     bool is_to_free_children = false;
 
-    Node *left_node = node->left;
-    Node *right_node = node->right;
-
     double val = num_node_child->value.dbl_val;
 
     if (val == 0)
     {
-        if (node->value.op_val == OP_SIN)
-        {
-            if (node->parent->left == node)
-            {
-                node->parent->left = nullptr;
-            }
-            else
-            {
-                node->parent->right = nullptr;
-            }
-
-            tree_free (node);
-        }
-        else if ((node->value.op_val == OP_ADD || node->value.op_val == OP_SUB) && node->parent != nullptr)
+        if ((Op == OP_ADD || Op == OP_SUB) && node->parent != nullptr)
         {
             if (node->parent->left == node)
             {
@@ -150,24 +148,24 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
 
             tree_free (num_node_child);
 
-            node->left = node->right = nullptr;
+            Left = Right = nullptr;
             tree_free (node);
         }
-        else if (node->value.op_val == OP_MUL)
+        else if (Op == OP_MUL)
         {
             node->type = TYPE_NUM;
             node->value.dbl_val = 0;
 
             is_to_free_children = true;//
         }
-        else if (node->value.op_val == OP_DEG)
+        else if (Op == OP_DEG)
         {
             node->type = TYPE_NUM;
             node->value.dbl_val = 1;
 
             is_to_free_children = true;//
         }
-        else if (node->value.op_val == OP_DIV)
+        else if (Op == OP_DIV)
         {
             debug_print ("Error: impossible operation: division by zero\n");
 
@@ -177,7 +175,7 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
     }
     else if (val == 1)
     {
-        if ((node->value.op_val == OP_MUL || node->value.op_val == OP_DIV || node->value.op_val == OP_DEG) && node->parent != nullptr)
+        if ((Op == OP_MUL || Op == OP_DIV || Op == OP_DEG) && node->parent != nullptr)
         {
             if (not_num_node_child)
             {
@@ -194,36 +192,18 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
 
                 tree_free (num_node_child);
 
-                node->left = node->right = nullptr;
+                Left = Right = nullptr;
                 tree_free (node);
             }
         }
     }
-    else if (node->value.op_val == OP_SIN || node->value.op_val == OP_COS)
-    {
-        node->type = TYPE_NUM;
-
-        if (node->value.op_val == OP_SIN)
-        {
-            node->value.dbl_val = sin (num_node_child->value.dbl_val);
-        }
-        else
-        {
-            node->value.dbl_val = cos (num_node_child->value.dbl_val);
-        }
-
-        node->right = nullptr;
-
-        tree_free (num_node_child);
-    }
 
     if (is_to_free_children)
     {
-        tree_free (left_node);
-        tree_free (right_node);
+        tree_free (Left);
+        tree_free (Right);
 
-        node->left = nullptr;
-        node->right = nullptr;
+        Left = Right = nullptr;
     }
 
     return nullptr;
@@ -251,5 +231,6 @@ int is_op (Node *node)
 
 #undef Left
 #undef Right
+#undef Op
 #undef debug_print
 #undef tex_print
