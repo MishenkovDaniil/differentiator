@@ -144,6 +144,7 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
                     {
                         result = ADD (MUL (MUL(cR, dL), DEG (cL, SUB(cR, create_num(1)))), MUL (MUL (DEG (cL, cR), LN(cL)), dR));
                     }
+
                     break;
                 }
                 case OP_SIN:
@@ -237,8 +238,16 @@ Node *cpy_node (const Node *node)
         printf ("copy failed\n");
     }
 
-    if (node->left) copy->left = cpy_node (node->left);
-    if (node->right) copy->right = cpy_node (node->right);
+    if (node->left)
+    {
+        copy->left = cpy_node (node->left);
+        copy->left->parent = copy;
+    }
+    if (node->right)
+    {
+        copy->right = cpy_node (node->right);
+        copy->right->parent = copy;
+    }
 
     return copy;
 }
