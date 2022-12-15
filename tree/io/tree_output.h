@@ -33,7 +33,7 @@ void print_point_value (const char *func_name, double point, double point_value,
 void print_decompose_tree (const char *func_name, Tree *decompose_tree, double decompose_point, int decompose_order,
                            FILE *tex_file);
 void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const char *input_file_name,
-                        Tree *func, FILE *tex_file);
+                        Tree *func, Tree *tangent_tree, FILE *tex_file, Config *config);
 bool func_for_gnuplot (Node *func_node, char *graphic_func);
 
 
@@ -41,5 +41,9 @@ bool func_for_gnuplot (Node *func_node, char *graphic_func);
 void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *original_node);
 void tree_tex_print_compressed (const Node *left_part, const Node *right_part, const Node *original_right_part,
                                 FILE *tex_file, bool is_diff = false, int diff_order = 1);
+
+void tex_tangent (Tree *expr, Tree *tangent_tree, const char *graphic_file_name, const char *input_file_name,
+                         Config *config, FILE *tex_file, FILE *graphic_file);
+void print_tangent (Tree *tangent_tree, double tangent_point, FILE *tex_file);
 
 #endif /* TREE_OUTPUT_H */

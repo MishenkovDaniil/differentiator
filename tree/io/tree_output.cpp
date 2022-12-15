@@ -65,11 +65,26 @@ void tex_decompose_func (Tree *expr, const char *func_name, const char *graphic_
 
     print_decompose_tree (func_name, &decompose_tree, config->decompose_point, config->decompose_order, tex_file);
 
-    tex_print_graphic (graphic_file, graphic_file_name, input_file_name, expr, tex_file);
-
     tree_dtor (&decompose_tree);
 }
 
+void tex_tangent (Tree *expr, Tree *tangent_tree, const char *graphic_file_name, const char *input_file_name,
+                         Config *config, FILE *tex_file, FILE *graphic_file)
+{
+    tangent_tree->root = tangent (expr, config->tangent_point);
+
+    print_tangent (tangent_tree, config->tangent_point, tex_file);
+}
+
+void print_tangent (Tree *tangent_tree, double tangent_point, FILE *tex_file)
+{
+    tex_print ("Найдем касательную в точке a = %.2lf:\n", tangent_point);
+    tex_print ("\\[t(x) = ");
+
+    tex_print_node (tangent_tree->root, tex_file);
+
+    tex_print ("\\]\\newline\n");
+}
 
 void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff, int diff_order)
 {
@@ -385,19 +400,25 @@ void new_section (FILE *tex_file)
 }
 
 void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const char *input_file_name,
-                        Tree *func, FILE *tex_file)
+                        Tree *func, Tree *tangent_tree, FILE *tex_file, Config *config)
 {
     int func_len = get_file_size (input_file_name);
 
     char *graphic_func = (char *)calloc (func_len + 100, sizeof (char));
     func_for_gnuplot (func->root, graphic_func);
-    printf ("\n[%s]\n", graphic_func);
+
+    char *tangent_func = (char *)calloc (1000, sizeof (char));
+    func_for_gnuplot (tangent_tree->root, tangent_func);
+
     fprintf  (graphic_file, "set terminal png size 800, 600\n"
                             "set xlabel \"x\"\n"
                             "set ylabel \"y\"\n"
+                            "set xrange [%lf:%lf]\n"
+                            "set yrange [%lf:%lf]\n"
                             "set grid\n"
                             "set samples 1000\n"
-                            "set output \"func.png\"\nplot %s", graphic_func);
+                            "set output \"func.png\"\nplot %s, %s", config->x_min, config->x_max, config->y_min, config->y_max,
+                                                                    graphic_func, tangent_func + strlen (graphic_func));
 
     fflush (graphic_file);
     system ("gnuplot graphic.txt");
@@ -410,6 +431,7 @@ void tex_print_graphic (FILE *graphic_file, const char *graphic_file_name, const
                "\\end{figure}\n");
 
     free (graphic_func);
+    free (tangent_func);
 }
 
 bool func_for_gnuplot (Node *func_node, char *graphic_func)
