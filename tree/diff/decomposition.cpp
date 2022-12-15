@@ -17,6 +17,20 @@
 #define DIV(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DIV", left_node, right_node)
 #define DEG(left_node, right_node)      tree_create_node (TYPE_OP, "OP_DEG", left_node, right_node)
 
+Node *tangent (const Tree *func, double point)
+{
+    double point_val = node_point_value (tree_diff (func->root), point);
+
+    Node *tangent_node = MUL (create_num (point_val), SUB (create_var(x), create_num (point)));
+    unsigned int err = 0;
+    Tree tangent_tree = {};
+    tangent_tree.root = tangent_node;
+    tree_check (&tangent_tree, &err);
+
+    return tangent_node;
+}
+
+
 int factorial (int number)
 {
     int result = 1;
@@ -44,8 +58,6 @@ Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double 
 
     for (int i = 1; i <= max_diff_order; i++)
     {
-        //tree_convolution (diff_tree_root);
-
         values[i] = node_point_value (diff_tree_root, point);
 
         if (i == 1)
@@ -61,6 +73,7 @@ Node *decompose (Tree *taylor_tree, const Node *node, int decompose_deg, double 
 
         if (i < decompose_deg)
         {
+            tree_convolution (diff_tree_root);
             diff_tree_root = tree_diff (diff_tree_root);
         }
 
