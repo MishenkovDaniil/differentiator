@@ -1,4 +1,7 @@
-func: sin(x^3) + (cos(10*x))^2;
+func: sin(x^3) + (cos(x))^2;
 point: 0;
-diff: 1;
+diff: 2;
 Taylor: 2 0;
+tangent: 1;
+Xrange: [-10, 10];
+Yrange: [-2, 2];
