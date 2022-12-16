@@ -83,7 +83,7 @@ void print_tangent (Tree *tangent_tree, double tangent_point, FILE *tex_file)
 
     tex_print_node (tangent_tree->root, tex_file);
 
-    tex_print ("\\]\\newline\n");
+    tex_print ("\\]\\newpage\n");
 }
 
 void tree_tex_print (const Node *left_part, const Node *right_part, FILE *tex_file, bool is_diff, int diff_order)
@@ -153,8 +153,8 @@ void tree_tex_print_compressed (const Node *left_part, const Node *right_part, c
 // cpu idea
 void tex_print_compressed_node (const Node *node, FILE *tex_file, const Node *original_node)
 {
-    static const char *char_labels[20] = {};
-    static const Node *node_labels[20] = {};
+    static const char *char_labels[200] = {};
+    static const Node *node_labels[200] = {};
     static int index = 0;
 
     static int is_not_start = 0;
@@ -310,7 +310,7 @@ void tex_print_node (const Node *node, FILE *tex_file)
         }
         case TYPE_VAR:
         {
-            tex_print (" %s ", node->value.var);
+            tex_print (" %s", node->value.var);
             break;
         }
         case TYPE_OP:
@@ -571,7 +571,6 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
 {
     tree_check (diff_func, &err);
 
-
     if (diff_order == 1)
     {
         tex_print ("\\[%s'(x) = ", func_name);
@@ -587,26 +586,33 @@ void print_diff_func (const char *func_name, Tree *diff_func, FILE *tex_file, in
     {
         tex_print_node (diff_func->root, tex_file);
         tex_print ("\\]\\newline\n");
+
+        if (compress_tree.root)
+        {
+            tree_dtor (&compress_tree);
+        }
     }
     else
     {
         tree_check (&compress_tree, &err);
+        tex_print_node (diff_func->root, tex_file);
         tex_print_compressed_node (compress_tree.root, tex_file, diff_func->root);
         tree_dtor (&compress_tree);
     }
+
 }
 
 void print_point_value (const char *func_name, double point, double point_value, FILE *tex_file)
 {
-    tex_print ("Найдем значение функции в точке %.2lf знаменитым в 17 веке методом буль-буль\\newline", point);
+    tex_print ("Найдем значение функции в точке %.2lf знаменитым в 17 веке методом буль-буль\\newline\n", point);
 
     if (point_value == NAN)
     {
-        tex_print ("функция не определена в точке a = %.2lf.\\newline", point);
+        tex_print ("функция не определена в точке а = %.2lf.\\newline\n", point);
     }
     else
     {
-        tex_print ("\\[%s(a) = %.2lf, где a = %.2lf\\]\\newline", func_name, point_value, point);
+        tex_print ("\\[%s(a) = %.2lf, где a = %.2lf\\]\\newline\n", func_name, point_value, point);
     }
 }
 
@@ -615,7 +621,7 @@ void print_decompose_tree (const char *func_name, Tree *decompose_tree, double d
 {
     tree_check (decompose_tree, &err);
 
-    tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке а = %.2lf\\newline\n", decompose_order, decompose_point);
+    tex_print ("Разложим функцию (по Тейлору) до $o(x^{%d})$ в точке a = %.2lf\\newline\n", decompose_order, decompose_point);
 
     tex_print ("\\[f(a) = ");
 
