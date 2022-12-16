@@ -46,7 +46,7 @@ Node *find_diff (Node *node, FILE *tex_file, int diff_order, unsigned int *err)
 
         if (--diff_order)
         {
-            tree_convolution (diff_tree_root);
+           tree_convolution (diff_tree_root);
         }
 
         if (temp_node != node)
@@ -186,13 +186,17 @@ Node *tree_diff (const Node *node, FILE *tex_file, bool is_to_print, unsigned in
         tree_2.root = result;
         Tree dst_tree_2 = {};
 
-        if (tree_compression (&tree_2, &dst_tree_2) == nullptr)
+        if (tree_compression (&tree_2, &dst_tree_2, tree_2.root) == nullptr)
         {
             tree_tex_print (node, result, tex_file, true);
         }
         else
         {
             tree_tex_print_compressed (node, dst_tree_2.root, result, tex_file, true);
+
+            unsigned int err = 0;
+
+            tree_check (&dst_tree_2, &err);
 
             tree_dtor (&dst_tree_2);
         }
@@ -229,6 +233,7 @@ Node *cpy_node (const Node *node)
         }
         default:
         {
+            fprintf (stderr, "Error: unknown type %d", node->type);
             return nullptr;
         }
     }
@@ -236,14 +241,15 @@ Node *cpy_node (const Node *node)
     if (copy == nullptr)
     {
         printf ("copy failed\n");
+        return nullptr;
     }
 
-    if (node->left)
+    if (node->left != nullptr)
     {
         copy->left = cpy_node (node->left);
         copy->left->parent = copy;
     }
-    if (node->right)
+    if (node->right != nullptr)
     {
         copy->right = cpy_node (node->right);
         copy->right->parent = copy;
