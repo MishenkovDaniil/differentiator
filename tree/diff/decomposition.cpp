@@ -19,13 +19,10 @@
 
 Node *tangent (const Tree *func, double point)
 {
-    double point_val = node_point_value (tree_diff (func->root), point);
+    double diff_point_val = node_point_value (tree_diff (func->root), point);
+    double point_val = node_point_value (func->root, point);
 
-    Node *tangent_node = MUL (create_num (point_val), SUB (create_var(x), create_num (point)));
-    unsigned int err = 0;
-    Tree tangent_tree = {};
-    tangent_tree.root = tangent_node;
-    tree_check (&tangent_tree, &err);
+    Node *tangent_node = ADD (create_num (point_val), MUL (create_num (diff_point_val), SUB (create_var(x), create_num (point))));
 
     return tangent_node;
 }
