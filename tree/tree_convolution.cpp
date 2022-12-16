@@ -13,6 +13,9 @@ Node *tree_convolution (Node *node)
 {
     int is_to_free_children = false;
 
+    Node *left_node = node->left;
+    Node *right_node = node->right;
+
     if (node->type == TYPE_OP)
     {
         if (is_op (Left))
@@ -58,6 +61,9 @@ Node *tree_convolution (Node *node)
 Node *convolute_nums (Node *node, double left_val, double right_val)
 {
     node->type = TYPE_NUM;
+
+    Node *left_node = node->left;
+    Node *right_node = node->right;
 
     switch (node->value.op_val)
     {
@@ -119,8 +125,8 @@ Node *convolute_nums (Node *node, double left_val, double right_val)
         }
     }
 
-    tree_free (Left);
-    tree_free (Right);
+    tree_free (left_node);
+    tree_free (right_node);
 
     Left = Right = nullptr;
 
@@ -132,6 +138,9 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
     bool is_to_free_children = false;
 
     double val = num_node_child->value.dbl_val;
+
+    Node *left_node = node->left;
+    Node *right_node = node->right;
 
     if (val == 0)
     {
@@ -200,8 +209,8 @@ Node *convolute_num (Node *node, Node *num_node_child, Node *not_num_node_child)
 
     if (is_to_free_children)
     {
-        tree_free (Left);
-        tree_free (Right);
+        tree_free (left_node);
+        tree_free (right_node);
 
         Left = Right = nullptr;
     }
