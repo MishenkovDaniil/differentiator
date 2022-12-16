@@ -21,13 +21,13 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
     size_t max_len = 40;
     bool is_compressed = false;
 
-
     if (!(compress_node || src_tree->root))
     {
         return nullptr;
     }
     else if (!(compress_node))
     {
+        fprintf (stderr, "pupupu\n");
         compress_node = src_tree->root;
     }
 
@@ -48,7 +48,7 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
 
     if (len_1 > max_len || len_2 > max_len)
     {
-        if (is_compressed == false)
+        if (is_compressed == false && compress_node == src_tree->root)
         {
             dst_tree->root = cpy_node (src_tree->root);
         }
@@ -66,6 +66,9 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
     {
         index++;
         is_compressed = true;
+
+        //if (dst_compress_node->left) tree_free (dst_compress_node->left->left);
+       // if (dst_compress_node->right )tree_free (dst_compress_node->left->right);
     }
     if ((node_compression (src_tree, dst_tree, compress_node->right, dst_compress_node->right, len_2, &index, max_len)) == true)
     {
@@ -75,9 +78,16 @@ Tree *tree_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node)
 
     if (!(is_compressed))
     {
+        if (dst_tree->root)
+        {
+            tree_dtor (dst_tree);
+        }
+
         return nullptr;
     }
 
+    unsigned int err = 0;
+    tree_check (dst_tree, &err);
     return dst_tree;
 }
 
@@ -99,6 +109,17 @@ bool node_compression (Tree *src_tree, Tree *dst_tree, Node *compress_node, Node
         dst_compress_node->type = TYPE_VAR;
         dst_compress_node->value.var = (char *)calloc (MAX_VAR_SIZE, sizeof (char));
         strcpy (dst_compress_node->value.var, var);
+
+        if (dst_compress_node->left)
+        {
+            tree_free (dst_compress_node->left);
+        }
+        if (dst_compress_node->right)
+        {
+            tree_free (dst_compress_node->right);
+        }
+
+        dst_compress_node->left = dst_compress_node->right = nullptr;
 
         return true;
     }
