@@ -247,9 +247,11 @@ void tree_graph (Tree *tree)
     const int CMD_LEN = 100;
     char cmd[CMD_LEN] = "";
 
+    #ifdef __unix__
+    sprintf (cmd, "dot tree_graph -T png -o tree_dots/tree_dot%d.png", PNG_FILE_NUMBER);
+    #else
     sprintf (cmd, "Dot tree_graph -T png -o tree_dots/tree_dot%d.png", PNG_FILE_NUMBER);
-
-    printf ("%s", cmd);
+    #endif
 
     system ((const char *)cmd);
 
@@ -266,7 +268,7 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
 
     if (node == nullptr)
     {
-        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{parent = %p} | NULL\"];\n\t", graph_num++);
+        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"orange\", label = \"{NULL\"];\n\t", graph_num++);
     }
     else
     {
@@ -288,34 +290,34 @@ int make_graph_nodes (Node *node, FILE *tgraph_file)
                     }
 
                     #define DEF_OP(name, num, sign,...)                                                                         \
-                    case OP_##name:                                                                                         \
-                    {                                                                                                       \
-                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\","     \
-                                            "label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t",   \
-                                            graph_num++, node, node->parent, #sign, node->left, node->right);             \
-                        break;                                                                                              \
+                    case OP_##name:                                                                                             \
+                    {                                                                                                           \
+                        fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\","         \
+                                            "label = \"{node %p | {parent = %p} | {OP | %s} | {L %p | R %p}} \"];\n\t",         \
+                                            graph_num++, node, node->parent, #sign, node->left, node->right);                   \
+                        break;                                                                                                  \
                     }
 
                     #include "../operations.h"
-
-                    #undef DEF_OP
 
                     default:
                     {
                         printf ("Error: wrong node op type in %s", __PRETTY_FUNCTION__);
                         break;
                     }
+
+                    #undef DEF_OP
                 }
                 break;
             }
             case TYPE_NUM:
             {
-                fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {NUM | %.2lf} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->value.dbl_val, node->left, node->right);
+                fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {NUM | %.2lf} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, node->value.dbl_val, node->left, node->right);
                 break;
             }
             case TYPE_VAR:
             {
-                fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {VAR | %s} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->value.var, node->left, node->right);
+                fprintf (tgraph_file, "node_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\", label = \"{node %p | {parent = %p} | {VAR | %c} | {L %p | R %p}} \"];\n\t", graph_num++, node, node->parent, *(node->value.var), node->left, node->right);
                 break;
             }
             default:
